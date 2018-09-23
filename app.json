@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "MicroBitcoin Wallet",
+    "slug": "micro-bitcoin-wallet",
+    "version": "0.1.0",
+    "sdkVersion": "29.0.0",
+    "orientation": "portrait",
+    "icon": "./src/assets/icon.png",
+    "splash": {
+      "image": "./src/assets/splash.png",
+      "backgroundColor": "#FFFFFF",
+      "resizeMode": "cover"
+    },
+    "ios": {
+      "bundleIdentifier": "org.microbitcoin.wallet",
+      "publishBundlePath": "ios/microbitcoin-wallet/Supporting/shell-app.bundle",
+      "publishManifestPath": "ios/microbitcoin-wallet/Supporting/shell-app-manifest.json"
+    },
+    "android": {
+      "package": "org.microbitcoin.wallet",
+      "publishBundlePath": "android/app/src/main/assets/shell-app.bundle",
+      "publishManifestPath": "android/app/src/main/assets/shell-app-manifest.json"
+    },
+    "isDetached": true,
+    "detach": {
+      "iosExpoViewUrl": "https://s3.amazonaws.com/exp-exponent-view-code/ios-v2.7.8-sdk29.0.0-02bd60c8-f134-4f5e-b5c0-1898ffb57231.tar.gz",
+      "androidExpoViewUrl": "https://s3.amazonaws.com/exp-exponent-view-code/android-v2.7.2-sdk29.0.0-54e8f46d-36a6-460f-b0f9-e1043f28b215.tar.gz"
+    },
+    "scheme": "expb34cff5ab6a54996b0a02073c788fe4e"
+  },
+  "name": "MicroBitcoin",
+  "displayName": "MicroBitcoin Wallet"
+}
