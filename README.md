@@ -2,6 +2,10 @@
 
 MicroBicoin mobile wallet working on React Native
 
+## Getting Started
+
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See `Installation` for notes on how to deploy the project on your system.
+
 ### Requirements
 
 - [Node](https://nodejs.org) 4.x or higher
