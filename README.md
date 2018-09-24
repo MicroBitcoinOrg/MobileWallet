@@ -1,6 +1,6 @@
-# MicroBicoin mobile wallet
+# MicroBitcoin mobile wallet
 
-MicroBicoin mobile wallet working on React Native
+MicroBitcoin mobile wallet working on React Native
 
 ## Getting Started
 
