@@ -71,7 +71,7 @@ export default class CreateWalletScreen extends React.Component {
     return(
       <View style={styles.container}>
         <ScrollView>
-          // <View style={styles.innerContainer}>
+          <View style={styles.innerContainer}>
           
             <View style={styles.txtTop}>
               <Text style={styles.txtInfo}>Please carefully write down this phrase:</Text>
@@ -109,7 +109,7 @@ export default class CreateWalletScreen extends React.Component {
               <Text style={styles.txtInfo}>Back</Text>
             </TouchableOpacity>
           
-          // </View>
+          </View>
         </ScrollView>
       </View>
     );
