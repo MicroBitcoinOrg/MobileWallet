@@ -66,7 +66,7 @@ export default class ImportWalletScreen extends React.Component {
 
         } else {
 
-          this.props.navigation.navigate('SetPassword', {"words": this.state.words, "walletName": this.state.walletName})
+          this.props.navigation.navigate('SetPassword', {"words": this.state.words, "walletName": this.state.walletName, "type": "import"})
 
         }
 

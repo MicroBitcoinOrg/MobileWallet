@@ -18,6 +18,16 @@ import Logo from '../assets/icon.png'
  */
 export default class RestoreWalletScreen extends React.Component {
 
+  static navigationOptions = () => {
+
+    return {
+      headerRight: (
+        <View></View>
+      )
+    }
+
+  }
+
   render() {
 
       return(
@@ -31,6 +41,8 @@ export default class RestoreWalletScreen extends React.Component {
             <Text style={styles.txtInfo}>Create a new wallet or</Text>
             <Text style={styles.txtInfo}>import an existing one</Text>
           </View>
+
+          
 
           <View style={styles.btnContainer}>
             <TouchableOpacity

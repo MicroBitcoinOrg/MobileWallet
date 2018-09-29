@@ -23,8 +23,9 @@ export default class SetPasswordScreen extends React.Component {
       loading: false,
       password: '',
       confirmPassword: '',
-      words: '',
-      walletName: ''
+      type: this.props.navigation.getParam('type', ''),
+      words: this.props.navigation.getParam('words', ''),
+      walletName: this.props.navigation.getParam('walletName', '')
     }
 
   }
@@ -35,9 +36,6 @@ export default class SetPasswordScreen extends React.Component {
 
   componentDidMount() {
 
-    const { navigation } = this.props
-    this.setState({words: navigation.getParam('words', '')})
-    this.setState({walletName: navigation.getParam('walletName', '')})
 
   }
 
@@ -46,7 +44,7 @@ export default class SetPasswordScreen extends React.Component {
     headerRight: Platform.OS === 'android' ? <View /> : ''
   }
 
-  onSave = () => {
+  onSave = async() => {
 
     if (!this.createInProcess) {
       
@@ -79,19 +77,13 @@ export default class SetPasswordScreen extends React.Component {
       } else {
 
         this.setState({"loading": true})
-        store.get("wallets").then((res) => {
-          store.get("walletsCount").then((count) => {
+        let count = await store.get("walletsCount")
 
-            store.save('walletsCount', count == null ? 1 : count+1)
-            store.push("wallets", generateWallet(this.state.words, this.state.walletName, count == null ? 1 : count+1, this.state.password)).then(() => {
-              
-              this.setState({"loading": false})
-              this.props.navigation.push('MyWallets')
-              
-            })
-            
-          })
-        })
+        store.save('walletsCount', count == null ? 1 : count+1)
+        await store.push("wallets", await generateWallet(this.state.words, this.state.walletName, count == null ? 1 : count+1, this.state.password, this.state.type))
+        
+        this.setState({"loading": false})
+        this.props.navigation.push('MyWallets')
         
       }
 

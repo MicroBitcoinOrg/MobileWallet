@@ -9,6 +9,7 @@ import {
   Keyboard,
   Dimensions,
   Alert,
+  Picker
 } from 'react-native'
 import Icon from 'react-native-vector-icons/Entypo'
 import NavbarButton from './NavbarButton'
@@ -33,6 +34,33 @@ export default class WalletSettingsScreen extends React.Component {
   componentWillUnmount() {
 
       this.isCancelled = true
+  }
+
+  clearTransactions = () => {
+
+    store.get('wallets').then((res) => {
+              
+      for (var i = 0; i < res.length; i++) {
+        
+        if (res[i].id == this.state.wallet.id) {
+          
+          for (var k = 0; k < res[i].addresses.length; k++) {
+
+            res[i].addresses[k].transactions = []
+
+          }
+
+          this.setState({wallet: res[i]})
+          break
+
+        }
+
+      }
+      store.save('wallets', res)
+      this.props.navigation.push("MyWallets")
+
+    })
+
   }
  
   removeWallet = () => {
@@ -67,12 +95,51 @@ export default class WalletSettingsScreen extends React.Component {
 
   }
 
+  changeHistoryCount = (itemValue) => {
+
+    store.get('wallets').then((res) => {
+              
+      for (var i = 0; i < res.length; i++) {
+        
+        if (res[i].id == this.state.wallet.id) {
+          
+          res[i].settings.historyCount = itemValue
+          this.setState({wallet: res[i]})
+          break
+
+        }
+
+      }
+      store.save('wallets', res)
+    })
+
+  }
+
   render() {
     return (
       <View style={styles.container}>
         <ScrollView>
-          <TouchableOpacity onPress={() => this.removeWallet()}>
-            <SettingsItem item={{'icon':'trash', 'left': 'Remove wallet', 'right': ''}} />
+          <TouchableOpacity>
+          <SettingsItem item={{containerStyle: {padding: 0, flexDirection: 'column'}, 'icon': 'bookmarks', 'left': 'Number of transactions to display', 'right': '', own: 
+            <Picker
+              selectedValue={this.state.wallet.settings.historyCount}
+              style={{ width: 100}}
+              onValueChange={(itemValue, itemIndex) => this.changeHistoryCount(itemValue)}>
+              <Picker.Item label="5" value="5" />
+              <Picker.Item label="10" value="10" />
+              <Picker.Item label="20" value="20" />
+              <Picker.Item label="40" value="40" />
+              <Picker.Item label="60" value="60" />
+              <Picker.Item label="80" value="80" />
+              <Picker.Item label="100" value="100" />
+            </Picker>
+            }} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => this.clearTransactions() } style={{ marginTop: 10}}>
+            <SettingsItem item={{'icon': 'folder', 'left': 'Clear transaction cache', 'right': ''}} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => this.removeWallet() }>
+            <SettingsItem item={{'icon': 'trash', 'left': 'Remove wallet', 'right': ''}} />
           </TouchableOpacity>
         </ScrollView>
       </View>
@@ -80,18 +147,25 @@ export default class WalletSettingsScreen extends React.Component {
   }
 }
 
+
+
 class SettingsItem extends React.Component {
   render() {
     const { item } = this.props
     return(
-      <View style={styles.itemContainer}>
-        <Icon name={item.icon} size={32} color="#cccccc" />
-        <View style={styles.itemLeftContainer}>
-          <Text style={styles.itemLeft}>{item.left}</Text>
+      <View>
+        <View style={styles.itemContainer}>
+          {item.icon != null ? <Icon name={item.icon} size={32} color="#cccccc" /> : null}
+          <View style={styles.itemLeftContainer}>
+            <Text style={styles.itemLeft}>{item.left}</Text>
+          </View>
+          <View style={styles.itemRightContainer}>
+            <Text style={styles.itemRight}>{item.right}</Text>
+          </View>
         </View>
-        <View style={styles.itemRightContainer}>
-          <Text style={styles.itemRight}>{item.right}</Text>
-        </View>
+        {item.own != null ? <View style={[styles.itemContainer, item.containerStyle != null ? item.containerStyle : null]}>
+           {item.own}
+        </View> : null}
       </View>
     )
   }
@@ -107,7 +181,6 @@ const styles = StyleSheet.create({
   itemContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     backgroundColor: '#ffffff',
     marginBottom: 1,
     padding: 16,
@@ -124,7 +197,7 @@ const styles = StyleSheet.create({
     paddingRight: 16,
   },
   itemLeft: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
     color: '#000672',
   },
@@ -132,7 +205,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   itemRight: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: '#000672',
   }

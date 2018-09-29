@@ -29,8 +29,8 @@ export default class MyWalletDetailsScreen extends React.Component {
     this.isCancelled = false
     this.state = {
 
-      updatingBalance: true,
       loading: false,
+      updatingBalance: false,
       isConnected: false,
       balance: null,
       transactions: null,
@@ -55,12 +55,12 @@ export default class MyWalletDetailsScreen extends React.Component {
         }
 
         NetInfo.isConnected.fetch().then(isConnected => {
-          this.setState({isConnected: isConnected})
+          !this.isCancelled && this.setState({isConnected: isConnected})
         });
 
         handleFirstConnectivityChange = (isConnected) => {
       
-          this.setState({isConnected: isConnected})
+          !this.isCancelled && this.setState({isConnected: isConnected})
 
         }
 
@@ -77,7 +77,7 @@ export default class MyWalletDetailsScreen extends React.Component {
             
             if(res[i].id == this.state.wallet.id) {
 
-              this.setState({wallet: res[i]})
+              !this.isCancelled && this.setState({wallet: res[i]})
               break
 
             }
@@ -130,7 +130,7 @@ export default class MyWalletDetailsScreen extends React.Component {
 
     if (this.state.transactions == null) {
 
-      this.getTransactions()
+      await this.getTransactions()
 
     } else {
 
@@ -162,7 +162,9 @@ export default class MyWalletDetailsScreen extends React.Component {
 
   updateBalance = async() => {
 
-    this.setState({updatingBalance: true})
+    // alert(this.state.updatingBalance)
+    !this.isCancelled && this.setState({updatingBalance: true})
+
     var promises = []
     var balance = 0
 
@@ -170,22 +172,20 @@ export default class MyWalletDetailsScreen extends React.Component {
 
       try{
 
-        this.state.ecl.blockchainAddress_getBalance(this.state.wallet.addresses[i].address).then((res) => {
-          
-          balance += res.confirmed
-          !this.isCancelled && this.setState({balance: balance})
-
-        })
-
+        balance += (await this.state.ecl.blockchainAddress_getBalance(this.state.wallet.addresses[i].address)).confirmed
+        
       } catch (e) {
 
         console.log(e)
 
       }
 
+      !this.isCancelled && this.setState({balance: balance})
+
     }
 
-    this.setState({updatingBalance: false})
+    !this.isCancelled && this.setState({updatingBalance: false})
+    // alert(this.state.updatingBalance)
 
   }
 
@@ -199,7 +199,7 @@ export default class MyWalletDetailsScreen extends React.Component {
 
     var addressQueue = this.state.addressQueue
     addressQueue.push(address)
-    this.setState({addressQueue: addressQueue})
+    !this.isCancelled && this.setState({addressQueue: addressQueue})
 
     var transactions = this.state.transactions
     var index = null
@@ -217,15 +217,26 @@ export default class MyWalletDetailsScreen extends React.Component {
 
     if (!this.isCancelled) {
 
-      let history = await this.state.ecl.blockchainAddress_history(address, 0)
+      var history
 
-      if (history.error != null) {
+      try {
+        
+        history = await this.state.ecl.blockchainAddress_history(address, 0)
+
+      
+      } catch (e) {
 
         return
 
       }
 
       for (var i = 0; i < history.history.length; i++) {
+
+        if (i == this.state.wallet.settings.historyCount-1) {
+
+          break
+
+        }
 
         if (transactions[address] == null) {
 
@@ -248,46 +259,56 @@ export default class MyWalletDetailsScreen extends React.Component {
 
         if (!haveTrans) {
 
-          this.createTransaction(history.history[i].data.txid, address).then(([transactionInfo, saveTrans]) => {
+          // alert(history.history[i].data.txid)
+          let res = await this.createTransaction(history.history[i].data.txid, address)
+          let transactionInfo = res[0]
+          let saveTrans = res[1]
 
-              transactions[address].unshift(transactionInfo)
+          transactions[address].unshift(transactionInfo)
 
-              if(saveTrans) {
+          if(saveTrans) {
 
-                store.get('wallets').then((res) => {
-              
-                  for (var i = 0; i < res.length; i++) {
-                    
-                    if (res[i].id == this.state.wallet.id) {
-                      
-                      res[i].addresses[index].transactions = transactions[address]
-                      this.state.wallet.addresses[index].transactions = transactions[address]
-                      break
-
-                    }
-
-                  }
-                  store.save('wallets', res)
-                })
-
-              }
-
-              var addressQueue = this.state.addressQueue
-
-              for (var i = 0; i < addressQueue.length; i++) {
-
-                if (addressQueue[i] == address) {
-
-                  addressQueue.splice(i, 1)
-                  this.setState({addressQueue: addressQueue})
+            store.get('wallets').then((res) => {
+          
+              for (var i = 0; i < res.length; i++) {
+                
+                if (res[i].id == this.state.wallet.id) {
+                  
+                  res[i].addresses[index].transactions = transactions[address]
+                  this.state.wallet.addresses[index].transactions = transactions[address]
+                  break
 
                 }
 
               }
-
-              !this.isCancelled && this.setState({'transactions': transactions})
-
+              store.save('wallets', res)
             })
+
+          }
+
+          var addressQueue = this.state.addressQueue
+
+          for (var i = 0; i < addressQueue.length; i++) {
+
+            if (addressQueue[i] == address) {
+
+              addressQueue.splice(i, 1)
+              !this.isCancelled && this.setState({addressQueue: addressQueue})
+
+            }
+
+          }
+
+          if (this.state.wallet.settings.historyCount != null && transactions[address].length > this.state.wallet.settings.historyCount) {
+
+            transactions[address] = transactions[address].slice(0, this.state.wallet.settings.historyCount);
+            console.log("HERE:", transactions[address].slice(0, this.state.wallet.settings.historyCount))
+
+          }
+
+          !this.isCancelled && this.setState({'transactions': transactions})
+
+            
 
         }
 
@@ -306,12 +327,14 @@ export default class MyWalletDetailsScreen extends React.Component {
         if (!this.isCancelled) {
 
           let index = j
-          let history = await this.state.ecl.blockchainAddress_history(this.state.wallet.addresses[j].address, 0)
           let sub = await this.state.ecl.blockchainAddress_subscribe(this.state.wallet.addresses[j].address)
+          var history = null
 
-          // alert(JSON.stringify(history))
+          try {
 
-          if (history.error != null) {
+            history = await this.state.ecl.blockchainAddress_history(this.state.wallet.addresses[j].address, 0)
+
+          } catch (e) {
 
             if (this.state.wallet.addresses[j].transactions.length > 0) {
 
@@ -321,8 +344,9 @@ export default class MyWalletDetailsScreen extends React.Component {
             
             !this.isCancelled && this.setState({'transactions': transactions})
             continue
-          
+
           }
+          // alert(JSON.stringify(history))
 
           if (history.history.length > 0) {
 
@@ -331,6 +355,12 @@ export default class MyWalletDetailsScreen extends React.Component {
           }
 
           for (var i = 0; i < history.history.length; i++) {
+
+            if (this.state.wallet.settings.historyCount != null && transactions[this.state.wallet.addresses[index].address].length == this.state.wallet.settings.historyCount) {
+
+              break
+
+            }
 
             var pushedFromStorage = false
 
@@ -353,35 +383,33 @@ export default class MyWalletDetailsScreen extends React.Component {
 
             }
 
-            await this.createTransaction(history.history[i].data.txid, this.state.wallet.addresses[index].address).then(([transactionInfo, saveTrans]) => {
+            let res = await this.createTransaction(history.history[i].data.txid, this.state.wallet.addresses[index].address)
+            let transactionInfo = res[0]
+            let saveTrans = res[1]
 
-              // alert(JSON.stringify(transactionInfo))
+            transactions[this.state.wallet.addresses[index].address].push(transactionInfo)
 
-              transactions[this.state.wallet.addresses[index].address].push(transactionInfo)
+            if (saveTrans) {
 
-              if (saveTrans) {
-
-                store.get('wallets').then((res) => {
-              
-                  for (var i = 0; i < res.length; i++) {
+              store.get('wallets').then((res) => {
+            
+                for (var i = 0; i < res.length; i++) {
+                  
+                  if (res[i].id == this.state.wallet.id) {
                     
-                    if (res[i].id == this.state.wallet.id) {
-                      
-                      res[i].addresses[index].transactions = transactions[this.state.wallet.addresses[index].address]
-                      this.state.wallet.addresses[index].transactions = transactions[this.state.wallet.addresses[index].address]
-                      break
-
-                    }
+                    res[i].addresses[index].transactions = transactions[this.state.wallet.addresses[index].address]
+                    this.state.wallet.addresses[index].transactions = transactions[this.state.wallet.addresses[index].address]
+                    break
 
                   }
-                  store.save('wallets', res)
-                })
 
-              }
+                }
+                store.save('wallets', res)
+              })
 
-              !this.isCancelled && this.setState({'transactions': transactions})
+            }
 
-            })
+            !this.isCancelled && this.setState({'transactions': transactions})
 
           }
 
@@ -395,9 +423,13 @@ export default class MyWalletDetailsScreen extends React.Component {
 
   createTransaction = async(tx, address) => {
 
-    let transaction = await this.state.ecl.blockchainTransaction_getVerbose(tx)
+    var transaction = null
+    
+    try {
 
-    if (transaction.error != null) {
+      transaction = await this.state.ecl.blockchainTransaction_getVerbose(tx)
+
+    } catch (e) {
 
       return
 
@@ -448,42 +480,37 @@ export default class MyWalletDetailsScreen extends React.Component {
 
     }
 
-    return Promise.all(promises).then((res, save) => {
+    let res = await Promise.all(promises)
+          
+    if (transactionInfo.amount == 0) {
 
-        res = transactionInfo
-        save = saveTrans
-              
-        if (res.amount == 0) {
+      transactionInfo.type = 'Received'
 
-          res.type = 'Received'
+      for (var k = 0; k < transaction.vout.length; k++) {
 
-          for (var k = 0; k < transaction.vout.length; k++) {
+        if (transaction.vout[k].scriptPubKey.addresses != null && address == transaction.vout[k].scriptPubKey.addresses[0]) {
 
-            if (transaction.vout[k].scriptPubKey.addresses != null && address == transaction.vout[k].scriptPubKey.addresses[0]) {
-
-              res.amount += transaction.vout[k].value
-
-            }
-
-          }
-
-        } else {
-
-          for (var k = 0; k < transaction.vout.length; k++) {
-
-            if (transaction.vout[k].scriptPubKey.addresses != null && address == transaction.vout[k].scriptPubKey.addresses[0]) {
-
-              res.amount -= transaction.vout[k].value
-
-            }
-
-          }
+          transactionInfo.amount += transaction.vout[k].value
 
         }
 
-        return Promise.all([res, save])
+      }
 
-      })
+    } else {
+
+      for (var k = 0; k < transaction.vout.length; k++) {
+
+        if (transaction.vout[k].scriptPubKey.addresses != null && address == transaction.vout[k].scriptPubKey.addresses[0]) {
+
+          transactionInfo.amount -= transaction.vout[k].value
+
+        }
+
+      }
+
+    }
+
+    return [transactionInfo, saveTrans]
 
   }
 
@@ -515,7 +542,7 @@ export default class MyWalletDetailsScreen extends React.Component {
 
   render() {
 
-    const { password, wallet, balance, transactions, isConnected, updatingBalance, loading, ecl } = this.state
+    const { password, wallet, balance, transactions, updatingBalance, isConnected, loading, ecl } = this.state
     
       return(
         <View style={styles.container}>
@@ -526,7 +553,7 @@ export default class MyWalletDetailsScreen extends React.Component {
             <Text style={{"fontSize": 14, "textAlign": "center", "color": "black"}}>Alpha release 0.2</Text>
           </View>
           <View style={styles.balanceContainer}>
-          {transactions == null ? <ActivityIndicator style={styles.balanceLoading} size="small" color="#fff" /> : <TouchableOpacity onPress={() => this.updateBalance()}><Text style={styles.balanceText}>{`${balance/10000} MBC`}</Text></TouchableOpacity>}
+          {transactions == null || updatingBalance ? <ActivityIndicator style={styles.balanceLoading} size="small" color="#fff" /> : <TouchableOpacity onPress={this.updateBalance}><Text style={styles.balanceText}>{`${balance/10000} MBC`}</Text></TouchableOpacity>}
             <Text style={styles.balanceSubText}>{wallet.title}</Text>
             <View style={[styles.status, isConnected ? styles.statusOnline : styles.statusOffline]}></View>
           </View>

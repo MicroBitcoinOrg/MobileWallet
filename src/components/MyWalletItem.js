@@ -25,6 +25,7 @@ export default class MyWalletItem extends React.Component {
   componentDidMount() {
 
     this.updateBalance()
+    // alert(JSON.stringify(this.props.wallet))
 
   }
 

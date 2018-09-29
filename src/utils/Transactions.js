@@ -114,7 +114,7 @@ export var processTransaction = async(wallet, password, recieveAddress, amount, 
 
   if (outputsAmount-amount-fee != 0 && wallet.addresses[wallet.addresses.length-1].address != null) {
 
-    outputs.push({"address": wallet.addresses[wallet.addresses.length-1].address, "amount": (outputsAmount-amount-fee).toString()})
+    outputs.push({"address": wallet.addresses[wallet.addresses.length-1].address, "amount": (outputsAmount-amount-fee).toFixed(3).toString()})
 
   }
 

@@ -12,7 +12,7 @@ import QRCode from 'react-native-qrcode'
 import NavbarButton from './NavbarButton'
 import store from 'react-native-simple-store'
 import Loader from './Loader'
-import { decryptData, generateChildWallet } from '../utils/Wallets'
+import { generateChildWallet } from '../utils/Wallets'
 
 export default class ReceiveScreen extends React.Component {
   

@@ -9,6 +9,7 @@ var HDKey = require('hdkey')
 var createHash = require('create-hash')
 var bs58check = require('bs58check')
 var aes256 = require('aes256')
+const ElectrumCli = require('electrum-client')
 
 var wallet = {}
 const networkPrefix = {main: [0x1A, 0x33], test: [0x47, 0x49]}
@@ -88,8 +89,9 @@ export var decryptData = (data, key) => {
     return data
 }
 
-export const generateWallet = (mnemonic, title, id, password) => {
+export const generateWallet = async(mnemonic, title, id, password, type) => {
 
+    const ecl = new ElectrumCli(7403, '13.57.248.201', 'tcp')
     const seed = getSeed(mnemonic)
     const hdKey = getHDKey(seed)
     const firstPair = hdKey.derive("m/44'/0'/0'/0/0")
@@ -98,9 +100,12 @@ export const generateWallet = (mnemonic, title, id, password) => {
 
     address['address'] = fromPublicKeyToAddress(getPublicKey(firstPair))
     address['privateKey'] = fromPrivateKeyToWIF(getPrivateKey(firstPair).toString('hex'))
-    
     address['transactions'] = []
     address['used'] = false
+
+    var settings = {}
+
+    settings['historyCount'] = '20'
 
     wallet['id'] = id
     wallet['title'] = title
@@ -114,14 +119,58 @@ export const generateWallet = (mnemonic, title, id, password) => {
 
     }
 
+    wallet['settings'] = settings
     wallet['addresses'] = [address]
+
+    if (type == "import") {
+
+        try {
+
+            await ecl.connect()
+            var i = 1
+            var k = 21
+
+            while (i < k) {
+                
+                let address = generateChildWallet(i, wallet['mnemonicPhrase'], password)
+                let balance = (await ecl.blockchainAddress_getBalance(address.address)).confirmed
+
+                if (balance > 0) {
+
+                    wallet['addresses'].push(address)
+
+                }
+
+                i++
+
+                if (i == k) {
+
+                    if (balance > 0 || wallet['addresses'].length > k/2) {
+
+                        k = k + 20
+
+                    }
+
+                } 
+
+            }
+
+            await ecl.close()
+
+        } catch (e) {
+
+            console.log(e)
+
+        }
+
+    }
 
     return wallet
 }
 
 export const generateChildWallet = (index, mnemonic, password) => {
 
-    const seed = getSeed(mnemonic)
+    const seed = getSeed(decryptData(mnemonic, password))
     const hdKey = getHDKey(seed)
 
     var childKeys = hdKey.derive("m/44'/0'/0'/0/"+index)

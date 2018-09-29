@@ -147,6 +147,10 @@ export default class SendScreen extends React.Component {
 
       this.setState({rAddress: address.split(' ').join('')})
 
+    } else {
+
+      this.setState({rAddress: address})
+
     }
 
   }
