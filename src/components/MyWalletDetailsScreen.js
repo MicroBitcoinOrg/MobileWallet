@@ -34,6 +34,7 @@ export default class MyWalletDetailsScreen extends React.Component {
       isConnected: false,
       balance: null,
       transactions: null,
+      addressQueue: [],
       wallet: this.props.navigation.getParam('wallet', null),
       password: this.props.navigation.getParam('password', null),
       ecl: this.props.navigation.getParam('ecl', null)
@@ -131,6 +132,14 @@ export default class MyWalletDetailsScreen extends React.Component {
 
       this.getTransactions()
 
+    } else {
+
+      for (var i = 0; i < this.state.wallet.addresses.length; i++) {
+        
+        await this.state.ecl.blockchainAddress_subscribe(this.state.wallet.addresses[i].address)
+      
+      }
+
     }
 
     this.updateBalance()
@@ -145,7 +154,7 @@ export default class MyWalletDetailsScreen extends React.Component {
     }, 30000)
 
     while(!this.isCancelled){
-        await sleep(5000)
+        await sleep(3000)
         const ver = await this.state.ecl.server_version()
     }
 
@@ -181,6 +190,16 @@ export default class MyWalletDetailsScreen extends React.Component {
   }
 
   updateTransactions = async(address) => {
+
+    for (var i = 0; i < this.state.addressQueue.length; i++) {
+
+      if (this.state.addressQueue[i] == address) return
+
+    }
+
+    var addressQueue = this.state.addressQueue
+    addressQueue.push(address)
+    this.setState({addressQueue: addressQueue})
 
     var transactions = this.state.transactions
     var index = null
@@ -231,7 +250,7 @@ export default class MyWalletDetailsScreen extends React.Component {
 
           this.createTransaction(history.history[i].data.txid, address).then(([transactionInfo, saveTrans]) => {
 
-              transactions[address].push(transactionInfo)
+              transactions[address].unshift(transactionInfo)
 
               if(saveTrans) {
 
@@ -250,6 +269,19 @@ export default class MyWalletDetailsScreen extends React.Component {
                   }
                   store.save('wallets', res)
                 })
+
+              }
+
+              var addressQueue = this.state.addressQueue
+
+              for (var i = 0; i < addressQueue.length; i++) {
+
+                if (addressQueue[i] == address) {
+
+                  addressQueue.splice(i, 1)
+                  this.setState({addressQueue: addressQueue})
+
+                }
 
               }
 

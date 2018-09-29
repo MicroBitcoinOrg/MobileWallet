@@ -11,7 +11,7 @@ import Logo from '../assets/logo_bare.png'
 import { decryptData } from '../utils/Wallets'
 
 export default class MyWalletItem extends React.Component {
-  
+
   constructor(props) {
 
     super(props)
@@ -19,7 +19,11 @@ export default class MyWalletItem extends React.Component {
     this.state = {
       balance: 0
     }
-    
+
+  }
+
+  componentDidMount() {
+
     this.updateBalance()
 
   }
@@ -32,7 +36,12 @@ export default class MyWalletItem extends React.Component {
 
       try {
 
-        balance += (await this.props.ecl.blockchainAddress_getBalance(this.props.wallet.addresses[i].address)).confirmed
+        this.props.ecl.blockchainAddress_getBalance(this.props.wallet.addresses[i].address).then((res) => {
+
+          balance += res.confirmed
+          this.setState({balance: balance})
+
+        })
 
       } catch (e) {
 

@@ -134,7 +134,7 @@ export var processTransaction = async(wallet, password, recieveAddress, amount, 
 
   try {
 
-    return ecl.blockchainTransaction_broadcast(tx)
+    return await ecl.blockchainTransaction_broadcast(tx)
 
   } catch (e) {
 

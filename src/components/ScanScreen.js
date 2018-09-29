@@ -14,11 +14,25 @@ import NavbarButton from './NavbarButton'
 
 export default class ScanScreen extends React.Component {
 
+  static navigationOptions = () => {
+
+    return {
+      headerRight: (
+        <View></View>
+      )
+    }
+
+  }
+
   onSuccess(e) {
     
     if(e.data.length == 47 && e.data.substring(0, 12) == "microbitcoin") {
 
       this.props.navigation.navigate('WalletSend', {scannedAddress: e.data.substring(13, e.data.length)})
+
+    } else if(e.data.length == 34) {
+
+      this.props.navigation.navigate('WalletSend', {scannedAddress: e.data})
 
     }
 
