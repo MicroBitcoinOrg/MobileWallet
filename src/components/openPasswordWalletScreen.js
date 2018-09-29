@@ -55,7 +55,7 @@ export default class openPasswordWalletScreen extends React.Component {
 
       } else {
 
-        this.props.navigation.navigate('MyWalletDetails', {"wallet": this.state.wallet, "password": this.state.password, "ecl": this.state.ecl})
+        this.props.navigation.push('MyWalletDetails', {"wallet": this.state.wallet, "password": this.state.password, "ecl": this.state.ecl})
         return
         
       }

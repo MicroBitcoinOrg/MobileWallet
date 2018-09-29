@@ -556,7 +556,7 @@ export default class MyWalletDetailsScreen extends React.Component {
               <NavbarButton label='Receive' icon='login' />
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => this.props.navigation.navigate('MyWallets')} style={styles.navbarIconButton}>
+              onPress={() => this.props.navigation.push('MyWallets')} style={styles.navbarIconButton}>
               <NavbarButton label='Wallets' icon='wallet' />
             </TouchableOpacity>
             <TouchableOpacity
@@ -589,7 +589,7 @@ export default class MyWalletDetailsScreen extends React.Component {
                     <NavbarButton label='Receive' icon='login' />
                   </TouchableOpacity>
                   <TouchableOpacity
-                    onPress={() => this.props.navigation.navigate('MyWallets')} style={styles.navbarIconButton}>
+                    onPress={() => this.props.navigation.push('MyWallets')} style={styles.navbarIconButton}>
                     <NavbarButton label='Wallets' icon='wallet' />
                   </TouchableOpacity>
                   <TouchableOpacity

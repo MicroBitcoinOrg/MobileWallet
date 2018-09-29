@@ -83,7 +83,7 @@ export default class MyWalletsScreen extends React.Component {
 
   openWallet = (wallet) => {
 
-    this.props.navigation.navigate('openPasswordWallet', {"wallet": wallet, "ecl": this.state.ecl})
+    this.props.navigation.push('openPasswordWallet', {"wallet": wallet, "ecl": this.state.ecl})
     return
     
   }
@@ -101,7 +101,7 @@ export default class MyWalletsScreen extends React.Component {
           <View style={styles.label}>
             <Text style={styles.labelText}>MY <Text style={{fontWeight: 'bold'}}>{'wallets'.toUpperCase()}</Text></Text>
             <TouchableOpacity
-              onPress={() => navigation.navigate("RestoreWallet")}
+              onPress={() => navigation.push("RestoreWallet")}
               style={styles.labelAddButton}>
               <Icon name="circle-with-plus" size={24} color="white" />
             </TouchableOpacity>
