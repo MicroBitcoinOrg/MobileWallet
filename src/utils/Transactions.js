@@ -61,25 +61,38 @@ export var processTransaction = async(wallet, password, recieveAddress, amount, 
 
   for (var i = 0; i < wallet.addresses.length; i++) {
 
-    let balance = await ecl.blockchainAddress_getBalance(wallet.addresses[i].address)
-    console.log("Balance: "+JSON.stringify(balance))
-    let utxo = null
+    var balance = null
 
-    if (balance.result != null && balance.result.confirmed > 0) {
+    try {
 
-      let utxo = await ecl.blockchainAddress_getUtxoAmount(wallet.addresses[i].address, balance.result.confirmed)
-      console.log("utxo: "+JSON.stringify(utxo))
+      balance = await ecl.blockchainAddress_getBalance(wallet.addresses[i].address)
+      console.log("Balance: "+JSON.stringify(balance))
 
-      if (utxo.error == null) {
+    } catch (e) {
+
+       console.log(e)
+
+    }
+
+    if (balance != null && balance.confirmed > 0) {
+
+      try {
+
+        let utxo = await ecl.blockchainAddress_getUtxoAmount(wallet.addresses[i].address, balance.confirmed)
+        console.log("utxo: "+JSON.stringify(utxo))
 
         usedAddresses.push(i)
 
-        for (var k = 0; k < utxo.result.length; k++) {
+        for (var k = 0; k < utxo.length; k++) {
           
-          inputs.push({"tx_hash": utxo.result[k].tx_hash, "tx_pos": utxo.result[k].tx_pos, "script": utxo.result[k].script})
-          outputsAmount += utxo.result[k].value/10000
+          inputs.push({"tx_hash": utxo[k].tx_hash, "tx_pos": utxo[k].tx_pos, "script": utxo[k].script})
+          outputsAmount += utxo[k].value/10000
 
         }
+
+      } catch (e) {
+
+         console.log(e)
 
       }
 
@@ -93,7 +106,7 @@ export var processTransaction = async(wallet, password, recieveAddress, amount, 
 
   if (outputsAmount == 0 && outputsAmount-amount-fee < 0) {
 
-    return {"error": "Output amount error"}
+    return {error: "Output amount error"}
 
   }
 
@@ -105,10 +118,7 @@ export var processTransaction = async(wallet, password, recieveAddress, amount, 
 
   }
 
-  // console.log("outputs: "+JSON.stringify(outputs))
-
   let tx = createTransaction(inputs, outputs).serialize()
-  // console.log("first tx: "+tx)
 
   if (tx != null) {
 
@@ -122,6 +132,14 @@ export var processTransaction = async(wallet, password, recieveAddress, amount, 
 
   console.log(tx)
 
-  return ecl.blockchainTransaction_broadcast(tx)
+  try {
 
+    return ecl.blockchainTransaction_broadcast(tx)
+
+  } catch (e) {
+
+     return {error: e.message}
+
+  }
+   
 }

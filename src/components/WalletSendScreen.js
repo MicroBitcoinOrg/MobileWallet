@@ -94,11 +94,13 @@ export default class SendScreen extends React.Component {
 
     this.setState({loading: true})
     let tx = await processTransaction(this.state.wallet, this.state.password, this.state.rAddress.split(' ').join(''), this.state.rAmount, this.state.rFees, this.state.ecl)
+    console.log("TX:", tx)
+
     this.setState({loading: false})
 
     setTimeout(() => {
 
-      if(!("error" in tx)) {
+      if(typeof tx  === 'string') {
 
         Alert.alert('Send Transaction', 'Success!')
 

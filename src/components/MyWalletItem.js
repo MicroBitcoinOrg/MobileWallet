@@ -11,6 +11,7 @@ import Logo from '../assets/logo_bare.png'
 import { decryptData } from '../utils/Wallets'
 
 export default class MyWalletItem extends React.Component {
+  
   constructor(props) {
 
     super(props)

@@ -18,7 +18,7 @@ export default class ScanScreen extends React.Component {
     
     if(e.data.length == 47 && e.data.substring(0, 12) == "microbitcoin") {
 
-      this.props.navigation.navigate('WalletSend', {scannedAddress: e.data.substring(13, str.length)})
+      this.props.navigation.navigate('WalletSend', {scannedAddress: e.data.substring(13, e.data.length)})
 
     }
 
