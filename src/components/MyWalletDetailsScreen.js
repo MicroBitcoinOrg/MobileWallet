@@ -517,7 +517,6 @@ export default class MyWalletDetailsScreen extends React.Component {
 
     const { password, wallet, balance, transactions, isConnected, updatingBalance, loading, ecl } = this.state
     
-    if (transactions != null) {
       return(
         <View style={styles.container}>
           {loading && 
@@ -527,15 +526,15 @@ export default class MyWalletDetailsScreen extends React.Component {
             <Text style={{"fontSize": 14, "textAlign": "center", "color": "black"}}>Alpha release 0.2</Text>
           </View>
           <View style={styles.balanceContainer}>
-          <TouchableOpacity onPress={() => this.updateBalance()}><Text style={styles.balanceText}>{`${balance/10000} MBC`}</Text></TouchableOpacity>
-            
+          {transactions == null ? <ActivityIndicator style={styles.balanceLoading} size="small" color="#fff" /> : <TouchableOpacity onPress={() => this.updateBalance()}><Text style={styles.balanceText}>{`${balance/10000} MBC`}</Text></TouchableOpacity>}
             <Text style={styles.balanceSubText}>{wallet.title}</Text>
             <View style={[styles.status, isConnected ? styles.statusOnline : styles.statusOffline]}></View>
           </View>
           <ScrollView>
-            {Object.keys(transactions).length == 0 ? <View style={styles.noHistoryContainer}><Text style={styles.labelText}>Wallet history is empty</Text></View> : <View></View>}
+          {transactions == null ? <View style={styles.noHistoryContainer}><ActivityIndicator size="large" color="#000672" /></View> : <View></View>}
+            {transactions != null && Object.keys(transactions).length == 0 ? <View style={styles.noHistoryContainer}><Text style={styles.labelText}>Wallet history is empty</Text></View> : <View></View>}
             {
-              Object.keys(transactions).map(key => (
+              transactions != null ? Object.keys(transactions).map(key => (
                 transactions[key].map((tx,i) => (
                 <View key={tx.txid}>
                 {i == 0 ? <Text style={styles.addressHeader}>{key}</Text> : <View></View>}
@@ -546,7 +545,7 @@ export default class MyWalletDetailsScreen extends React.Component {
                 </TouchableOpacity>
                 </View>
                 ))
-              ))
+              )) : <View></View>
             }
           </ScrollView>
           <View style={styles.navbar}>
@@ -567,40 +566,7 @@ export default class MyWalletDetailsScreen extends React.Component {
           </View>
         </View>
       )
-    } else {
-      return (<View style={styles.container}>
-                <View style={styles.versionContainer}>
-                  <Text style={{"fontSize": 14, "textAlign": "center", "color": "black"}}>Alpha release 0.2</Text>
-                </View>
-                <View style={styles.balanceContainer}>
-                  <ActivityIndicator style={styles.balanceLoading} size="small" color="#fff" />
-                  <Text style={styles.balanceSubText}>{wallet.title}</Text>
-                  <View style={[styles.status, isConnected ? styles.statusOnline : styles.statusOffline]}></View>
-                </View>
-                <ScrollView>
-                  <View style={styles.noHistoryContainer}>
-                    <ActivityIndicator size="large" color="#000672" />
-                  </View>
-                </ScrollView>
-                <View style={styles.navbar}>
-                  <TouchableOpacity
-                    onPress={() => this.props.navigation.navigate('WalletReceive', {'wallet': wallet, 'password': password, 'ecl': ecl})}
-                    style={styles.navbarIconButton}>
-                    <NavbarButton label='Receive' icon='login' />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => this.props.navigation.push('MyWallets')} style={styles.navbarIconButton}>
-                    <NavbarButton label='Wallets' icon='wallet' />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => this.props.navigation.navigate('WalletSend', {'wallet': wallet, 'password': password, 'ecl': ecl})}
-                    style={styles.navbarIconButton}>
-                    <NavbarButton label='Send' icon='log-out' />
-                  </TouchableOpacity>
-                </View>
-              </View>
-              ) 
-    }
+    
   }
 }
 
