@@ -71,7 +71,7 @@ export default class CreateWalletScreen extends React.Component {
     return(
       <View style={styles.container}>
         <ScrollView>
-          <View style={styles.innerContainer}>
+          // <View style={styles.innerContainer}>
           
             <View style={styles.txtTop}>
               <Text style={styles.txtInfo}>Please carefully write down this phrase:</Text>
@@ -109,7 +109,7 @@ export default class CreateWalletScreen extends React.Component {
               <Text style={styles.txtInfo}>Back</Text>
             </TouchableOpacity>
           
-          </View>
+          // </View>
         </ScrollView>
       </View>
     );
@@ -139,7 +139,8 @@ const styles = StyleSheet.create({
   },
   wordsContainer: {
     backgroundColor: '#ffffff',
-    padding: 24,
+    paddingTop: 24,
+    paddingBottom: 24,
     marginBottom: 24,
     borderRadius: 16,
     width: '100%',
@@ -154,9 +155,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#ffffff',
     marginBottom: 24,
-    padding: 24,
+    paddingTop: 24,
+    paddingBottom: 24,
     borderRadius: 16,
-    minWidth: 256,
+    minWidth: '100%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.33,
@@ -165,8 +167,9 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   inputPhrase: {
-    flex: 1,
-    minWidth: 256,
+    paddingRight: 15,
+    paddingLeft: 15,
+    minWidth: '100%',
     textAlign: 'center',
     fontSize: 18,
     fontWeight: 'bold',
@@ -174,6 +177,8 @@ const styles = StyleSheet.create({
     color: '#000672',
   },
   words: {
+    paddingRight: 15,
+    paddingLeft: 15,
     textAlign: 'center',
     fontSize: 18,
     fontWeight: 'bold',

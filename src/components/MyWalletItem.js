@@ -16,7 +16,7 @@ export default class MyWalletItem extends React.Component {
     super(props)
 
     this.state = {
-      balance: null
+      balance: 0
     }
     
     this.updateBalance()
@@ -56,7 +56,7 @@ export default class MyWalletItem extends React.Component {
         <Image source={Logo} style={styles.listItemLogo} />
         <View style={styles.listItemTextContainer}>
           <Text style={styles.listItemTextName}>{`${wallet.title}`}</Text>
-          {balance == null ? <Text style={[styles.listItemTextBalance, {marginTop: 3}]}><ActivityIndicator size="small" color="#000672" /></Text> : <Text style={styles.listItemTextBalance}>{`${balance/10000} MBC`}</Text>}
+          <Text style={styles.listItemTextBalance}>{`${balance/10000} MBC`}</Text>
         </View>
         {/*<Icon name='dots-three-vertical' size={20} color='#000672' style={styles.listItemIcon} />*/}
       </View>

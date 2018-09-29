@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-
+import Loader from './Loader'
 import store from 'react-native-simple-store';
 import { generateWallet } from '../utils/Wallets'
 
@@ -20,6 +20,7 @@ export default class SetPasswordScreen extends React.Component {
 
     this.createInProcess = false
     this.state = {
+      loading: false,
       password: '',
       confirmPassword: '',
       words: '',
@@ -77,12 +78,14 @@ export default class SetPasswordScreen extends React.Component {
 
       } else {
 
+        this.setState({"loading": true})
         store.get("wallets").then((res) => {
           store.get("walletsCount").then((count) => {
 
             store.save('walletsCount', count == null ? 1 : count+1)
             store.push("wallets", generateWallet(this.state.words, this.state.walletName, count == null ? 1 : count+1, this.state.password)).then(() => {
               
+              this.setState({"loading": false})
               this.props.navigation.push('MyWallets')
               
             })
@@ -100,7 +103,9 @@ export default class SetPasswordScreen extends React.Component {
 
     return(
       <View style={styles.container}>
-
+        {this.state.loading && 
+          <Loader loading={true} />
+        }
         <View style={styles.txtTop}>
           <Text style={styles.txtInfo}>Please set a password:</Text>
         </View>
