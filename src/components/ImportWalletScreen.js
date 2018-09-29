@@ -78,47 +78,51 @@ export default class ImportWalletScreen extends React.Component {
   render() {
     return(
       <View style={styles.container}>
-        <View style={styles.txtTop}>
-          <Text style={styles.txtInfo}>Please enter your mnemonic phrase:</Text>
-        </View>
+        <ScrollView>
+          <View style={styles.innerContainer}>
+            <View style={styles.txtTop}>
+              <Text style={styles.txtInfo}>Please enter your mnemonic phrase:</Text>
+            </View>
 
-        <View style={styles.inputContainer}>
-          <TextInput
-            onChangeText={(words) => this.setState({words})}
-            value={this.state.words}
-            multiline={true}
-            blurOnSubmit={true}
-            placeholder='Enter phrase here'
-            underlineColorAndroid='transparent'
-            style={styles.inputPhrase}
-          />
-        </View>
+            <View style={styles.inputContainer}>
+              <TextInput
+                onChangeText={(words) => this.setState({words})}
+                value={this.state.words}
+                multiline={true}
+                blurOnSubmit={true}
+                placeholder='Enter phrase here'
+                underlineColorAndroid='transparent'
+                style={styles.inputPhrase}
+              />
+            </View>
 
-        <View style={styles.inputContainer}>
-          <TextInput style={styles.inputPhrase}
-            placeholder = {"Type your wallet name"}
-            onChangeText={(text) => this.setState({walletName: text})}
-            editable = {true}
-            underlineColorAndroid='transparent'
-            maxLength = {35}
-          />
-        </View>
+            <View style={styles.inputContainer}>
+              <TextInput style={styles.inputPhrase}
+                placeholder = {"Type your wallet name"}
+                onChangeText={(text) => this.setState({walletName: text})}
+                editable = {true}
+                underlineColorAndroid='transparent'
+                maxLength = {35}
+              />
+            </View>
 
-        <View>
-          <Text style={styles.txtInfo}>Keep your backup phrase secure.</Text>
-        </View>
+            <View>
+              <Text style={styles.txtInfo}>Keep your backup phrase secure.</Text>
+            </View>
 
-        <View style={styles.btnConfirmContainer}>
-          <TouchableOpacity style={styles.btnConfirm} onPress={this.onConfirm}>
-            <Text style={styles.btnConfirmText}>IMPORT MY ACCOUNT</Text>
-          </TouchableOpacity>
-        </View>
+            <View style={styles.btnConfirmContainer}>
+              <TouchableOpacity style={styles.btnConfirm} onPress={this.onConfirm}>
+                <Text style={styles.btnConfirmText}>IMPORT MY ACCOUNT</Text>
+              </TouchableOpacity>
+            </View>
 
-        <TouchableOpacity
-          style={styles.btnBack}
-          onPress={() => this.props.navigation.goBack()}>
-          <Text style={styles.txtInfo}>Back</Text>
-        </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.btnBack}
+              onPress={() => this.props.navigation.goBack()}>
+              <Text style={styles.txtInfo}>Back</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
       </View>
     );
   }
@@ -131,37 +135,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: '#f2f2f2',
-    paddingTop: 36,
-    paddingBottom: 36,
-    paddingRight: 24,
-    paddingLeft: 24,
+  },
+  innerContainer: {
+    flex: 1,
+    padding: 24,
+
   },
   txtTop: {
     marginBottom: 16
   },
   txtInfo: {
     fontSize: 14,
-    color: '#505659'
+    color: '#505659',
+    textAlign: 'center'
   },
-  inputContainer: {
-    flexDirection: 'row',
+  wordsContainer: {
     backgroundColor: '#ffffff',
     padding: 24,
+    marginBottom: 24,
     borderRadius: 16,
-    minWidth: 256,
+    width: '100%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.33,
     shadowRadius: 3,
     elevation: 3,
     zIndex: 10,
-    marginTop: 5,
-    marginBottom: 5
   },
-  wordsContainer: {
+  inputContainer: {
+    flexDirection: 'row',
     backgroundColor: '#ffffff',
+    marginBottom: 24,
     padding: 24,
     borderRadius: 16,
+    minWidth: 256,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.33,

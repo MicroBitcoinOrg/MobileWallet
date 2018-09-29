@@ -10,10 +10,8 @@ import {
 import Icon from 'react-native-vector-icons/Entypo';
 import MyWalletItem from './MyWalletItem';
 import NavbarButton from './NavbarButton';
-
 import store from 'react-native-simple-store';
-
-
+const ElectrumCli = require('electrum-client')
 
 export default class MyWalletsScreen extends React.Component {
 
@@ -22,8 +20,11 @@ export default class MyWalletsScreen extends React.Component {
     super(props);
 
     this.state = {
-      wallets: []
+      wallets: [],
+      ecl: new ElectrumCli(7403, '13.57.248.201', 'tcp')
     }
+
+    this.connectToTCP()
 
     const willFocusSubscription = this.props.navigation.addListener(
       'willFocus',
@@ -55,25 +56,35 @@ export default class MyWalletsScreen extends React.Component {
     gesturesEnabled: false,
   }
 
-  componentDidMount() {
+  connectToTCP = async() => {
 
+    try {
+
+      await this.state.ecl.connect()
+
+    } catch (e) {
+
+      console.log(e)
+
+    }
+
+  }
+
+  componentDidMount() {
     // store.delete('wallets')
-    BackHandler.addEventListener('hardwareBackPress', this.handleBackPress)
+    
   }
 
   componentWillUnmount() {
-    BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress)
+
+    // this.state.ecl.close()
+
   }
 
   openWallet = (wallet) => {
 
-    if(wallet['password'] != '') {
-      this.props.navigation.navigate('openPasswordWallet', {"wallet": wallet})
-      return
-    } else {
-      this.props.navigation.navigate('MyWalletDetails', {"wallet": wallet})
-      return
-    }
+    this.props.navigation.navigate('openPasswordWallet', {"wallet": wallet, "ecl": this.state.ecl})
+    return
     
   }
 
@@ -104,7 +115,7 @@ export default class MyWalletsScreen extends React.Component {
                 activeOpacity={0.9}
                 key={wallet.id}
                 onPress={() => this.openWallet(wallet)}>
-                <MyWalletItem wallet={wallet} />
+                <MyWalletItem wallet={wallet} ecl={this.state.ecl} />
               </TouchableOpacity>
             ))
 

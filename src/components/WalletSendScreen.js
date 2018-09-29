@@ -14,7 +14,6 @@ import Icon from 'react-native-vector-icons/Entypo'
 import QRCode from 'react-native-qrcode'
 import NavbarButton from './NavbarButton'
 import Loader from './Loader'
-import { getEstimateSmartFee } from '../utils/ElectrumAPI'
 import { processTransaction } from '../utils/Transactions'
 
 export default class SendScreen extends React.Component {
@@ -30,7 +29,8 @@ export default class SendScreen extends React.Component {
       rFees: '',
       smartFee: '0.000',
       wallet: this.props.navigation.getParam('wallet', null),
-      password: this.props.navigation.getParam('password', null)
+      password: this.props.navigation.getParam('password', null),
+      ecl: this.props.navigation.getParam('ecl', null)
     }
 
     const willFocusSubscription = this.props.navigation.addListener(
@@ -39,11 +39,11 @@ export default class SendScreen extends React.Component {
 
         this.setState({rAddress: this.props.navigation.getParam('scannedAddress', '')})
         
-        getEstimateSmartFee().then((res) => {
+        this.state.ecl.blockchainEstimateSmartfee().then((res) => {
 
           if (res.error == null) {
 
-            this.setState({smartFee: res.result.feerate.toString()})
+            this.setState({smartFee: res.feerate.toString()})
 
           }
 
@@ -93,7 +93,7 @@ export default class SendScreen extends React.Component {
   sendTransaction = async() => {
 
     this.setState({loading: true})
-    let tx = await processTransaction(this.state.wallet, this.state.password, this.state.rAddress.split(' ').join(''), this.state.rAmount, this.state.rFees)
+    let tx = await processTransaction(this.state.wallet, this.state.password, this.state.rAddress.split(' ').join(''), this.state.rAmount, this.state.rFees, this.state.ecl)
     this.setState({loading: false})
 
     setTimeout(() => {

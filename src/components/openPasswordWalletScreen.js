@@ -20,7 +20,8 @@ export default class openPasswordWalletScreen extends React.Component {
 
     this.state = {
       password: "",
-      wallet: this.props.navigation.getParam('wallet', null)
+      wallet: this.props.navigation.getParam('wallet', null),
+      ecl: this.props.navigation.getParam('ecl', null)
     }
 
     const willFocusSubscription = this.props.navigation.addListener(
@@ -34,15 +35,6 @@ export default class openPasswordWalletScreen extends React.Component {
 
   }
 
-  componentWillUnmount() {
-
-  }
-
-  componentDidMount() {
-    
-  }
-
-  // Align title image to center on Android
   static navigationOptions = {
     headerRight: Platform.OS === 'android' ? <View /> : ''
   }
@@ -63,7 +55,7 @@ export default class openPasswordWalletScreen extends React.Component {
 
       } else {
 
-        this.props.navigation.navigate('MyWalletDetails', {"wallet": this.state.wallet, "password": this.state.password})
+        this.props.navigation.navigate('MyWalletDetails', {"wallet": this.state.wallet, "password": this.state.password, "ecl": this.state.ecl})
         return
         
       }

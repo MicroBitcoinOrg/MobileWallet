@@ -1,5 +1,6 @@
 import React from 'react'
 import {
+  ActivityIndicator,
   Image,
   StyleSheet,
   Text,
@@ -7,8 +8,6 @@ import {
 } from 'react-native'
 import Icon from 'react-native-vector-icons/Entypo'
 import Logo from '../assets/logo_bare.png'
-
-import { getAddressBalance } from '../utils/ElectrumAPI'
 import { decryptData } from '../utils/Wallets'
 
 export default class MyWalletItem extends React.Component {
@@ -17,28 +16,34 @@ export default class MyWalletItem extends React.Component {
     super(props)
 
     this.state = {
-      balance: 0
-    }
-
-    var promises = []
-    var balance = 0
-
-    for (var i = 0; i < props.wallet.addresses.length; i++) {
-
-      getAddressBalance(props.wallet.addresses[i].address).then((res) => {
-
-        if(res.error == null) {
-
-          balance += res.result.confirmed
-          this.setState({balance: balance})
-
-        }
-        
-
-      })
-
+      balance: null
     }
     
+    this.updateBalance()
+
+  }
+
+  updateBalance = async() => {
+
+    var balance = 0
+
+    for (var i = 0; i < this.props.wallet.addresses.length; i++) {
+
+      try {
+
+        balance += (await this.props.ecl.blockchainAddress_getBalance(this.props.wallet.addresses[i].address)).confirmed
+
+      } catch (e) {
+
+        console.log(e)
+
+      }
+
+    }
+
+    this.setState({balance: balance})
+    // await ecl.close()
+
   }
 
   render() {
@@ -51,7 +56,7 @@ export default class MyWalletItem extends React.Component {
         <Image source={Logo} style={styles.listItemLogo} />
         <View style={styles.listItemTextContainer}>
           <Text style={styles.listItemTextName}>{`${wallet.title}`}</Text>
-          <Text style={styles.listItemTextBalance}>{`${balance/10000} MBC`}</Text>
+          {balance == null ? <Text style={[styles.listItemTextBalance, {marginTop: 3}]}><ActivityIndicator size="small" color="#000672" /></Text> : <Text style={styles.listItemTextBalance}>{`${balance/10000} MBC`}</Text>}
         </View>
         {/*<Icon name='dots-three-vertical' size={20} color='#000672' style={styles.listItemIcon} />*/}
       </View>

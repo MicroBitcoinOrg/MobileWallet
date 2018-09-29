@@ -1,6 +1,7 @@
 import React from 'react'
 import {
   Platform,
+  ScrollView,
   Alert,
   TouchableOpacity,
   StyleSheet,
@@ -69,42 +70,47 @@ export default class CreateWalletScreen extends React.Component {
     const { words } = this.state;
     return(
       <View style={styles.container}>
+        <ScrollView>
+          <View style={styles.innerContainer}>
+          
+            <View style={styles.txtTop}>
+              <Text style={styles.txtInfo}>Please carefully write down this phrase:</Text>
+            </View>
 
-        <View style={styles.txtTop}>
-          <Text style={styles.txtInfo}>Please carefully write down this phrase:</Text>
-        </View>
+            <View style={styles.wordsContainer}>
+              <Text selectable style={styles.words}>
+                {words}
+              </Text>
+            </View>
 
-        <View style={styles.wordsContainer}>
-          <Text selectable style={styles.words}>
-            {words}
-          </Text>
-        </View>
+            <View style={styles.inputContainer}>
+              <TextInput style={styles.inputPhrase}
+                placeholder = {"Type your wallet name"}
+                onChangeText={(text) => this.setState({walletName: text})}
+                editable = {true}
+                underlineColorAndroid='transparent'
+                maxLength = {35}
+              />
+            </View>
 
-        <View style={styles.inputContainer}>
-          <TextInput style={styles.inputPhrase}
-            placeholder = {"Type your wallet name"}
-            onChangeText={(text) => this.setState({walletName: text})}
-            editable = {true}
-            underlineColorAndroid='transparent'
-            maxLength = {35}
-          />
-        </View>
+            <View>
+              <Text style={styles.txtInfo}>Keep your backup phrase secure.</Text>
+            </View>
 
-        <View>
-          <Text style={styles.txtInfo}>Keep your backup phrase secure.</Text>
-        </View>
+            <View style={styles.btnConfirmContainer}>
+              <TouchableOpacity style={styles.btnConfirm} onPress={this.onConfirm}>
+                <Text style={styles.btnConfirmText}>I HAVE SECURED IT</Text>
+              </TouchableOpacity>
+            </View>
 
-        <View style={styles.btnConfirmContainer}>
-          <TouchableOpacity style={styles.btnConfirm} onPress={this.onConfirm}>
-            <Text style={styles.btnConfirmText}>I HAVE SECURED IT</Text>
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity
-          style={styles.btnBack}
-          onPress={() => this.props.navigation.goBack()}>
-          <Text style={styles.txtInfo}>Back</Text>
-        </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.btnBack}
+              onPress={() => this.props.navigation.goBack()}>
+              <Text style={styles.txtInfo}>Back</Text>
+            </TouchableOpacity>
+          
+          </View>
+        </ScrollView>
       </View>
     );
   }
@@ -117,21 +123,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: '#f2f2f2',
-    paddingTop: 36,
-    paddingBottom: 36,
-    paddingRight: 24,
-    paddingLeft: 24,
+  },
+  innerContainer: {
+    flex: 1,
+    padding: 24,
+
   },
   txtTop: {
     marginBottom: 16
   },
   txtInfo: {
     fontSize: 14,
-    color: '#505659'
+    color: '#505659',
+    textAlign: 'center'
   },
   wordsContainer: {
     backgroundColor: '#ffffff',
     padding: 24,
+    marginBottom: 24,
     borderRadius: 16,
     width: '100%',
     shadowColor: '#000',
@@ -144,8 +153,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     backgroundColor: '#ffffff',
-    marginTop: 5,
-    marginBottom: 5,
+    marginBottom: 24,
     padding: 24,
     borderRadius: 16,
     minWidth: 256,

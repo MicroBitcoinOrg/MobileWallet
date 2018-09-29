@@ -13,7 +13,6 @@ import NavbarButton from './NavbarButton'
 import store from 'react-native-simple-store'
 import Loader from './Loader'
 import { decryptData, generateChildWallet } from '../utils/Wallets'
-import { getHistory} from '../utils/ElectrumAPI'
 
 export default class ReceiveScreen extends React.Component {
   
@@ -24,49 +23,15 @@ export default class ReceiveScreen extends React.Component {
     this.state = {
       loading: false,
       wallet: this.props.navigation.getParam('wallet', null),
-      password: this.props.navigation.getParam('password', null)
+      password: this.props.navigation.getParam('password', null),
+      ecl: this.props.navigation.getParam('ecl', null)
     }
     
-  }
-
-  checkLastAddress = async() => {
-
-    if(this.state.wallet.addresses[this.state.wallet.addresses.length-1].transactions.length > 0) {
-
-      return false
-
-    }
-
-    let history = await getHistory(this.state.wallet.addresses[this.state.wallet.addresses.length-1].address)
-
-    if (history.error != null) {
-
-      return true
-
-    }
-
-    if (history.result.total > 0) {
-
-      return false
-
-    }
-
-    return true
-
   }
 
   generateNewAddress = async() => {
 
     const { wallet, password } = this.state
-
-    let isAddressEmpty = await this.checkLastAddress()
-
-    if (isAddressEmpty) {
-
-      Alert.alert("New address", "Your current address is empty.")
-      return
-
-    }
 
     this.setState({"loading": true})
     store.get('wallets').then((res) => {

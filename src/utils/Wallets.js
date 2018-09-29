@@ -10,7 +10,6 @@ var createHash = require('create-hash')
 var bs58check = require('bs58check')
 var aes256 = require('aes256')
 
-
 var wallet = {}
 const networkPrefix = {main: [0x1A, 0x33], test: [0x47, 0x49]}
 

@@ -1,6 +1,5 @@
 var coinjs = require('coinjs')
 
-import { getAddressBalance, getAddressUtxoAmount, transactionBroadcast } from '../utils/ElectrumAPI'
 import { decryptData } from '../utils/Wallets'
 
 
@@ -53,7 +52,7 @@ var signTransaction = (text, wif) => {
 
 }
 
-export var processTransaction = async(wallet, password, recieveAddress, amount, fee) => {
+export var processTransaction = async(wallet, password, recieveAddress, amount, fee, ecl) => {
 
   var inputs = [],
       outputs = [],
@@ -62,13 +61,13 @@ export var processTransaction = async(wallet, password, recieveAddress, amount, 
 
   for (var i = 0; i < wallet.addresses.length; i++) {
 
-    let balance = await getAddressBalance(wallet.addresses[i].address)
+    let balance = await ecl.blockchainAddress_getBalance(wallet.addresses[i].address)
     console.log("Balance: "+JSON.stringify(balance))
     let utxo = null
 
     if (balance.result != null && balance.result.confirmed > 0) {
 
-      let utxo = await getAddressUtxoAmount(wallet.addresses[i].address, balance.result.confirmed)
+      let utxo = await ecl.blockchainAddress_getUtxoAmount(wallet.addresses[i].address, balance.result.confirmed)
       console.log("utxo: "+JSON.stringify(utxo))
 
       if (utxo.error == null) {
@@ -123,6 +122,6 @@ export var processTransaction = async(wallet, password, recieveAddress, amount, 
 
   console.log(tx)
 
-  return transactionBroadcast(tx)
+  return ecl.blockchainTransaction_broadcast(tx)
 
 }

@@ -16,9 +16,9 @@ import {
 import Icon from 'react-native-vector-icons/Entypo'
 import NavbarButton from './NavbarButton'
 import Loader from './Loader'
-import { getAddressBalance, getHistory, getTransactionVerbose } from '../utils/ElectrumAPI'
 import store from 'react-native-simple-store'
-
+// const ecl = new ElectrumCli(7403, '13.250.238.150', 'tcp') // 13.57.248.201:7403
+const sleep = (ms) => new Promise((resolve,_) => setTimeout(() => resolve(), ms))
 
 export default class MyWalletDetailsScreen extends React.Component {
 
@@ -35,13 +35,23 @@ export default class MyWalletDetailsScreen extends React.Component {
       balance: null,
       transactions: null,
       wallet: this.props.navigation.getParam('wallet', null),
-      password: this.props.navigation.getParam('password', null)
+      password: this.props.navigation.getParam('password', null),
+      ecl: this.props.navigation.getParam('ecl', null)
 
     }
 
     const willFocusSubscription = this.props.navigation.addListener(
       'willFocus',
       payload => {
+
+        this.props.navigation.setParams({navigateToSettings: this.navigateToSettings})
+        this.isCancelled = false
+
+        if (this.state.wallet != null) {
+
+          this.updateWallet()
+
+        }
 
         NetInfo.isConnected.fetch().then(isConnected => {
           this.setState({isConnected: isConnected})
@@ -78,6 +88,22 @@ export default class MyWalletDetailsScreen extends React.Component {
       }
     )
 
+    const willBlurSubscription = this.props.navigation.addListener(
+      'willBlur',
+      payload => {
+
+        this.isCancelled = true
+        clearInterval(this.sub)
+        NetInfo.isConnected.removeEventListener(
+
+          'connectionChange',
+          handleFirstConnectivityChange
+
+        );
+
+      }
+    )
+
   }
 
   static navigationOptions = ({ navigation }) => {
@@ -85,85 +111,43 @@ export default class MyWalletDetailsScreen extends React.Component {
     const { params = {} } = navigation.state
 
     return {
-      headerRight: (
-        <Icon name="trash" size={18} style={{paddingRight: 10}} onPress={() => params.removeWallet()} color="#000672" />
-      )
+      headerRight: (<Icon name="dots-three-horizontal" size={18} style={{paddingRight: 10}} onPress={() => params.navigateToSettings()} color="#000672" />)
     }
 
   }
 
-  removeWallet = () => {
+  navigateToSettings = () => {
 
-    Alert.alert(
-      "Remove wallet", "Are you sure?",
-      [
-          {text: 'No'},
-          {text: 'Yes', onPress: () => {
-
-            store.get('wallets').then((res) => {
-      
-              for (var i = 0; i < res.length; i++) {
-                
-                if(res[i].id == this.state.wallet.id) {
-
-                  res.splice(i, 1)
-                  break
-
-                }
-
-              }
-
-              store.save('wallets', res)
-              this.props.navigation.navigate('MyWallets')
-
-            })
-
-          }}
-        ],
-        { cancelable: false })
-
-  }
-
-  componentDidMount() {
-
-    this.props.navigation.setParams({ removeWallet: this.removeWallet })
-
-    if (this.state.wallet != null) {
-
-      this.getTransactions()
-      this.updateBalance()
-      this.updateWallet()
-
-    }
-
-  }
-
-  componentWillUnmount() {
-
-      this.isCancelled = true
-      clearInterval(this.sub)
-      NetInfo.isConnected.removeEventListener(
-
-        'connectionChange',
-        handleFirstConnectivityChange
-
-      );
+    this.componentWillUnmount()
+    this.props.navigation.navigate("WalletSettings", {wallet: this.state.wallet, password: this.state.password})
 
   }
 
   updateWallet = async() => {
 
+    this.state.ecl.subscribe.on('blockchain.address.subscribe', (res) => { this.updateTransactions(res[0]) })
 
+    if (this.state.transactions == null) {
+
+      this.getTransactions()
+
+    }
+
+    this.updateBalance()
     this.sub = setInterval(() => {
 
       if (this.state.isConnected) {
 
-        this.updateTransactions()
         this.updateBalance()
 
       }
 
     }, 30000)
+
+    while(!this.isCancelled){
+        await sleep(5000)
+        const ver = await this.state.ecl.server_version()
+    }
 
   }
 
@@ -175,16 +159,20 @@ export default class MyWalletDetailsScreen extends React.Component {
 
     for (var i = 0; i < this.state.wallet.addresses.length; i++) {
 
-      getAddressBalance(this.state.wallet.addresses[i].address).then((res) => {
+      try{
 
-        if(res.error == null) {
-
-          balance += res.result.confirmed
+        this.state.ecl.blockchainAddress_getBalance(this.state.wallet.addresses[i].address).then((res) => {
+          
+          balance += res.confirmed
           !this.isCancelled && this.setState({balance: balance})
 
-        }
+        })
 
-      })
+      } catch (e) {
+
+        console.log(e)
+
+      }
 
     }
 
@@ -192,78 +180,82 @@ export default class MyWalletDetailsScreen extends React.Component {
 
   }
 
-  updateTransactions = async() => {
+  updateTransactions = async(address) => {
 
     var transactions = this.state.transactions
+    var index = null
 
-    for (var j = this.state.wallet.addresses.length - 1; j >= 0; j--) {
+    for (var i = 0; i < this.state.wallet.addresses.length; i++) {
 
-      let index = j
+      if (this.state.wallet.addresses[i].address == address) {
 
-      if (!this.isCancelled) {
+        index = i
+        break
 
-        let history = await getHistory(this.state.wallet.addresses[j].address, 0)
+      }
 
-        if (history.error != null) {
+    }
 
-          continue
+    if (!this.isCancelled) {
+
+      let history = await this.state.ecl.blockchainAddress_history(address, 0)
+
+      if (history.error != null) {
+
+        return
+
+      }
+
+      for (var i = 0; i < history.history.length; i++) {
+
+        if (transactions[address] == null) {
+
+          transactions[address] = []
 
         }
 
-        for (var i = 0; i < history.result.history.length; i++) {
+        var haveTrans = false
 
-          if (transactions[this.state.wallet.addresses[j].address] == null) {
+        for (var k = 0; k < transactions[address].length; k++) {
 
-            transactions[this.state.wallet.addresses[j].address] = []
+          if (transactions[address][k].txid == history.history[i].data.txid) {
 
-          }
-
-          var haveTrans = false
-
-          for (var k = 0; k < transactions[this.state.wallet.addresses[j].address].length; k++) {
-
-            if (transactions[this.state.wallet.addresses[j].address][k].txid == history.result.history[i].data.txid) {
-
-              haveTrans = true
-              break
-
-            }
+            haveTrans = true
+            break
 
           }
 
-          // alert(address)
+        }
 
-          if (!haveTrans) {
+        if (!haveTrans) {
 
-            this.createTransaction(history.result.history[i].data.txid, this.state.wallet.addresses[j].address).then(([transactionInfo, saveTrans]) => {
+          this.createTransaction(history.history[i].data.txid, address).then(([transactionInfo, saveTrans]) => {
 
-                transactions[this.state.wallet.addresses[index].address].unshift(transactionInfo)
+              transactions[address].push(transactionInfo)
 
-                if(saveTrans) {
+              if(saveTrans) {
 
-                  store.get('wallets').then((res) => {
-                
-                    for (var i = 0; i < res.length; i++) {
+                store.get('wallets').then((res) => {
+              
+                  for (var i = 0; i < res.length; i++) {
+                    
+                    if (res[i].id == this.state.wallet.id) {
                       
-                      if (res[i].id == this.state.wallet.id) {
-                        
-                        res[i].addresses[index].transactions = transactions[this.state.wallet.addresses[index].address]
-                        this.state.wallet.addresses[index].transactions = transactions[this.state.wallet.addresses[index].address]
-                        break
-
-                      }
+                      res[i].addresses[index].transactions = transactions[address]
+                      this.state.wallet.addresses[index].transactions = transactions[address]
+                      break
 
                     }
-                    store.save('wallets', res)
-                  })
 
-                }
+                  }
+                  store.save('wallets', res)
+                })
 
-                !this.isCancelled && this.setState({'transactions': transactions})
+              }
 
-              })
+              !this.isCancelled && this.setState({'transactions': transactions})
 
-          }
+            })
 
         }
 
@@ -282,7 +274,10 @@ export default class MyWalletDetailsScreen extends React.Component {
         if (!this.isCancelled) {
 
           let index = j
-          let history = await getHistory(this.state.wallet.addresses[j].address, 0)
+          let history = await this.state.ecl.blockchainAddress_history(this.state.wallet.addresses[j].address, 0)
+          let sub = await this.state.ecl.blockchainAddress_subscribe(this.state.wallet.addresses[j].address)
+
+          // alert(JSON.stringify(history))
 
           if (history.error != null) {
 
@@ -297,19 +292,19 @@ export default class MyWalletDetailsScreen extends React.Component {
           
           }
 
-          if (history.result.history.length > 0) {
+          if (history.history.length > 0) {
 
             transactions[this.state.wallet.addresses[j].address] = []
 
           }
 
-          for (var i = 0; i < history.result.history.length; i++) {
+          for (var i = 0; i < history.history.length; i++) {
 
             var pushedFromStorage = false
 
             for (var k = 0; k < this.state.wallet.addresses[j].transactions.length; k++) {
 
-              if (this.state.wallet.addresses[j].transactions[k].txid == history.result.history[i].data.txid && this.state.wallet.addresses[j].transactions[k].timestamp != "Mempool") {
+              if (this.state.wallet.addresses[j].transactions[k].txid == history.history[i].data.txid && this.state.wallet.addresses[j].transactions[k].timestamp != "Mempool") {
 
                 transactions[this.state.wallet.addresses[j].address].push(this.state.wallet.addresses[j].transactions[k])
                 pushedFromStorage = true
@@ -326,7 +321,7 @@ export default class MyWalletDetailsScreen extends React.Component {
 
             }
 
-            await this.createTransaction(history.result.history[i].data.txid, this.state.wallet.addresses[index].address).then(([transactionInfo, saveTrans]) => {
+            await this.createTransaction(history.history[i].data.txid, this.state.wallet.addresses[index].address).then(([transactionInfo, saveTrans]) => {
 
               // alert(JSON.stringify(transactionInfo))
 
@@ -368,7 +363,7 @@ export default class MyWalletDetailsScreen extends React.Component {
 
   createTransaction = async(tx, address) => {
 
-    let transaction = await getTransactionVerbose(tx)
+    let transaction = await this.state.ecl.blockchainTransaction_getVerbose(tx)
 
     if (transaction.error != null) {
 
@@ -379,10 +374,10 @@ export default class MyWalletDetailsScreen extends React.Component {
     var transactionInfo = {}
     var saveTrans = true
 
-    transactionInfo.txid = transaction.result.txid
+    transactionInfo.txid = transaction.txid
     transactionInfo.amount = 0
     transactionInfo.link = 'https://microbitcoinorg.github.io/explorer/#/tx/' + transactionInfo.txid
-    transactionInfo.timestamp = transaction.result.time
+    transactionInfo.timestamp = transaction.time
 
     if (transactionInfo.timestamp != null) {
 
@@ -401,17 +396,17 @@ export default class MyWalletDetailsScreen extends React.Component {
 
     var promises = []
 
-    for (var k = 0; k < transaction.result.vin.length; k++) {
+    for (var k = 0; k < transaction.vin.length; k++) {
 
-      if (transaction.result.vin[k].txid != null) {
+      if (transaction.vin[k].txid != null) {
 
         let kIndex = k
 
-          promises.push(getTransactionVerbose(transaction.result.vin[k].txid).then((verbose) => {
+          promises.push(this.state.ecl.blockchainTransaction_getVerbose(transaction.vin[k].txid).then((verbose) => {
 
-              if (address == verbose.result.vout[transaction.result.vin[kIndex].vout].scriptPubKey.addresses[0]) {
+              if (address == verbose.vout[transaction.vin[kIndex].vout].scriptPubKey.addresses[0]) {
 
-                  transactionInfo.amount += verbose.result.vout[transaction.result.vin[kIndex].vout].value
+                  transactionInfo.amount += verbose.vout[transaction.vin[kIndex].vout].value
                   transactionInfo.type = 'Sent'
 
               }
@@ -430,11 +425,11 @@ export default class MyWalletDetailsScreen extends React.Component {
 
           res.type = 'Received'
 
-          for (var k = 0; k < transaction.result.vout.length; k++) {
+          for (var k = 0; k < transaction.vout.length; k++) {
 
-            if (transaction.result.vout[k].scriptPubKey.addresses != null && address == transaction.result.vout[k].scriptPubKey.addresses[0]) {
+            if (transaction.vout[k].scriptPubKey.addresses != null && address == transaction.vout[k].scriptPubKey.addresses[0]) {
 
-              res.amount += transaction.result.vout[k].value
+              res.amount += transaction.vout[k].value
 
             }
 
@@ -442,11 +437,11 @@ export default class MyWalletDetailsScreen extends React.Component {
 
         } else {
 
-          for (var k = 0; k < transaction.result.vout.length; k++) {
+          for (var k = 0; k < transaction.vout.length; k++) {
 
-            if (transaction.result.vout[k].scriptPubKey.addresses != null && address == transaction.result.vout[k].scriptPubKey.addresses[0]) {
+            if (transaction.vout[k].scriptPubKey.addresses != null && address == transaction.vout[k].scriptPubKey.addresses[0]) {
 
-              res.amount -= transaction.result.vout[k].value
+              res.amount -= transaction.vout[k].value
 
             }
 
@@ -488,7 +483,7 @@ export default class MyWalletDetailsScreen extends React.Component {
 
   render() {
 
-    const { password, wallet, balance, transactions, isConnected, updatingBalance, loading } = this.state
+    const { password, wallet, balance, transactions, isConnected, updatingBalance, loading, ecl } = this.state
     
     if (transactions != null) {
       return(
@@ -497,7 +492,7 @@ export default class MyWalletDetailsScreen extends React.Component {
             <Loader loading={true} />
           }
           <View style={styles.versionContainer}>
-            <Text style={{"fontSize": 14, "textAlign": "center", "color": "black"}}>Alpha release 0.1</Text>
+            <Text style={{"fontSize": 14, "textAlign": "center", "color": "black"}}>Alpha release 0.2</Text>
           </View>
           <View style={styles.balanceContainer}>
           <TouchableOpacity onPress={() => this.updateBalance()}><Text style={styles.balanceText}>{`${balance/10000} MBC`}</Text></TouchableOpacity>
@@ -524,7 +519,7 @@ export default class MyWalletDetailsScreen extends React.Component {
           </ScrollView>
           <View style={styles.navbar}>
             <TouchableOpacity
-              onPress={() => this.props.navigation.navigate('WalletReceive', {'wallet': wallet, 'password': password})}
+              onPress={() => this.props.navigation.navigate('WalletReceive', {'wallet': wallet, 'password': password, 'ecl': ecl})}
               style={styles.navbarIconButton}>
               <NavbarButton label='Receive' icon='login' />
             </TouchableOpacity>
@@ -533,7 +528,7 @@ export default class MyWalletDetailsScreen extends React.Component {
               <NavbarButton label='Wallets' icon='wallet' />
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => this.props.navigation.navigate('WalletSend', {'wallet': wallet, 'password': password})}
+              onPress={() => this.props.navigation.navigate('WalletSend', {'wallet': wallet, 'password': password, 'ecl': ecl})}
               style={styles.navbarIconButton}>
               <NavbarButton label='Send' icon='log-out' />
             </TouchableOpacity>
@@ -543,7 +538,7 @@ export default class MyWalletDetailsScreen extends React.Component {
     } else {
       return (<View style={styles.container}>
                 <View style={styles.versionContainer}>
-                  <Text style={{"fontSize": 14, "textAlign": "center", "color": "black"}}>Alpha release 0.1</Text>
+                  <Text style={{"fontSize": 14, "textAlign": "center", "color": "black"}}>Alpha release 0.2</Text>
                 </View>
                 <View style={styles.balanceContainer}>
                   <ActivityIndicator style={styles.balanceLoading} size="small" color="#fff" />
@@ -557,7 +552,7 @@ export default class MyWalletDetailsScreen extends React.Component {
                 </ScrollView>
                 <View style={styles.navbar}>
                   <TouchableOpacity
-                    onPress={() => this.props.navigation.navigate('WalletReceive', {'wallet': wallet, 'password': password})}
+                    onPress={() => this.props.navigation.navigate('WalletReceive', {'wallet': wallet, 'password': password, 'ecl': ecl})}
                     style={styles.navbarIconButton}>
                     <NavbarButton label='Receive' icon='login' />
                   </TouchableOpacity>
@@ -566,7 +561,7 @@ export default class MyWalletDetailsScreen extends React.Component {
                     <NavbarButton label='Wallets' icon='wallet' />
                   </TouchableOpacity>
                   <TouchableOpacity
-                    onPress={() => this.props.navigation.navigate('WalletSend', {'wallet': wallet, 'password': password})}
+                    onPress={() => this.props.navigation.navigate('WalletSend', {'wallet': wallet, 'password': password, 'ecl': ecl})}
                     style={styles.navbarIconButton}>
                     <NavbarButton label='Send' icon='log-out' />
                   </TouchableOpacity>

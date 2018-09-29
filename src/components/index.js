@@ -9,6 +9,7 @@ import WalletReceiveScreen from './WalletReceiveScreen'
 import WalletSendScreen from './WalletSendScreen'
 import ScanScreen from './ScanScreen'
 import openPasswordWalletScreen from './openPasswordWalletScreen'
+import WalletSettingsScreen from './WalletSettingsScreen'
 export {
   Header,
   RestoreWalletScreen,
@@ -20,5 +21,6 @@ export {
   WalletReceiveScreen,
   WalletSendScreen,
   ScanScreen,
-  openPasswordWalletScreen
+  openPasswordWalletScreen,
+  WalletSettingsScreen
 }
