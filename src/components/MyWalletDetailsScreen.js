@@ -118,14 +118,12 @@ export default class MyWalletDetailsScreen extends React.Component {
 
   navigateToSettings = () => {
 
-    this.componentWillUnmount()
     this.props.navigation.navigate("WalletSettings", {wallet: this.state.wallet, password: this.state.password})
 
   }
 
   updateWallet = async() => {
 
-    // global.ecl.close()
     try {
 
       await global.ecl.connect()
@@ -334,7 +332,7 @@ export default class MyWalletDetailsScreen extends React.Component {
     for (var j = this.state.wallet.addresses.length - 1; j >= 0; j--) {
 
         if (!this.isCancelled) {
-          alert(global.ecl.status)
+          // alert(global.ecl.status)
           if (!global.ecl.status) {
 
             if (this.state.wallet.addresses[j].transactions.length > 0) {
@@ -582,7 +580,7 @@ export default class MyWalletDetailsScreen extends React.Component {
             <Loader loading={true} />
           }
           <View style={styles.versionContainer}>
-            <Text style={{"fontSize": 14, "textAlign": "center", "color": "black"}}>Beta release 1.0</Text>
+            <Text style={{"fontSize": 14, "textAlign": "center", "color": "black"}}>Beta release {global.version}</Text>
           </View>
           <View style={styles.balanceContainer}>
           {transactions == null || updatingBalance ? <ActivityIndicator style={styles.balanceLoading} size="small" color="#fff" /> : <TouchableOpacity onPress={this.updateBalance}><Text style={styles.balanceText}>{`${balance/10000} MBC`}</Text></TouchableOpacity>}

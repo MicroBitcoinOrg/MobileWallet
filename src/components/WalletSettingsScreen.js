@@ -31,6 +31,16 @@ export default class WalletSettingsScreen extends React.Component {
 
   }
 
+  static navigationOptions = () => {
+
+    return {
+      headerRight: (
+        <View></View>
+      )
+    }
+
+  }
+
   componentWillUnmount() {
 
       this.isCancelled = true

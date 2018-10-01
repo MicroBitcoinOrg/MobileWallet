@@ -1,5 +1,6 @@
 import React from 'react'
 import {
+  Alert,
   ActivityIndicator,
   Image,
   StyleSheet,
@@ -25,7 +26,7 @@ export default class MyWalletItem extends React.Component {
   componentDidMount() {
 
     this.updateBalance()
-    // alert(JSON.stringify(this.props.wallet))
+    // Alert.alert("Engineer message", JSON.stringify(this.props.wallet))
 
   }
 

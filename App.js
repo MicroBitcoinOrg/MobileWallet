@@ -50,10 +50,29 @@ export default class App extends React.Component {
     super(props)
 
     global.ecl = new ElectrumCli(7403, '13.57.248.201', 'tcp')
+    global.version = "1.0"
 
-    store.get("currentAppVersion").then((ver) => {
+  }
 
-        store.save("currentAppVersion", "1.0")
+  componentDidMount() {
+
+    store.get("wallets").then((wallets) => {
+
+      if (wallets != null) {
+
+          for (var i = 0; i < wallets.length; i++) {
+
+            if (!("settings" in wallets[i])) {
+
+              wallets[i]['settings'] = {'historyCount': '20'}
+
+            }
+
+          }
+
+          store.save('wallets', wallets)
+
+      }
 
     })
 
