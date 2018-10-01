@@ -29,8 +29,7 @@ export default class SendScreen extends React.Component {
       rFees: '',
       smartFee: '0.000',
       wallet: this.props.navigation.getParam('wallet', null),
-      password: this.props.navigation.getParam('password', null),
-      ecl: this.props.navigation.getParam('ecl', null)
+      password: this.props.navigation.getParam('password', null)
     }
 
     const willFocusSubscription = this.props.navigation.addListener(
@@ -39,7 +38,7 @@ export default class SendScreen extends React.Component {
 
         this.setState({rAddress: this.props.navigation.getParam('scannedAddress', '')})
         
-        this.state.ecl.blockchainEstimateSmartfee().then((res) => {
+        global.ecl.blockchainEstimateSmartfee().then((res) => {
 
           if (res.error == null) {
 
@@ -93,7 +92,7 @@ export default class SendScreen extends React.Component {
   sendTransaction = async() => {
 
     this.setState({loading: true})
-    let tx = await processTransaction(this.state.wallet, this.state.password, this.state.rAddress.split(' ').join(''), this.state.rAmount, this.state.rFees, this.state.ecl)
+    let tx = await processTransaction(this.state.wallet, this.state.password, this.state.rAddress.split(' ').join(''), this.state.rAmount, this.state.rFees, global.ecl)
     console.log("TX:", tx)
 
     this.setState({loading: false})

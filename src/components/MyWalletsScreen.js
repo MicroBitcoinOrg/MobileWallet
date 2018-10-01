@@ -11,25 +11,22 @@ import Icon from 'react-native-vector-icons/Entypo';
 import MyWalletItem from './MyWalletItem';
 import NavbarButton from './NavbarButton';
 import store from 'react-native-simple-store';
-const ElectrumCli = require('electrum-client')
 
 export default class MyWalletsScreen extends React.Component {
 
   constructor(props) {
 
-    super(props);
+    super(props)
 
     this.state = {
-      wallets: [],
-      ecl: new ElectrumCli(7403, '13.57.248.201', 'tcp')
+      wallets: []
     }
-
-    this.connectToTCP()
 
     const willFocusSubscription = this.props.navigation.addListener(
       'willFocus',
       payload => {
 
+        this.connect()
         store.get('wallets').then((res) => {
 
           if (res == null || res.length == 0) {
@@ -56,17 +53,9 @@ export default class MyWalletsScreen extends React.Component {
     gesturesEnabled: false,
   }
 
-  connectToTCP = async() => {
+  connect = async() => {
 
-    try {
-
-      await this.state.ecl.connect()
-
-    } catch (e) {
-
-      console.log(e)
-
-    }
+    await global.ecl.connect()
 
   }
 
@@ -77,13 +66,12 @@ export default class MyWalletsScreen extends React.Component {
 
   componentWillUnmount() {
 
-    // this.state.ecl.close()
 
   }
 
   openWallet = (wallet) => {
 
-    this.props.navigation.push('openPasswordWallet', {"wallet": wallet, "ecl": this.state.ecl})
+    this.props.navigation.push('openPasswordWallet', {"wallet": wallet})
     return
     
   }
@@ -115,7 +103,7 @@ export default class MyWalletsScreen extends React.Component {
                 activeOpacity={0.9}
                 key={wallet.id}
                 onPress={() => this.openWallet(wallet)}>
-                <MyWalletItem wallet={wallet} ecl={this.state.ecl} />
+                <MyWalletItem wallet={wallet} ecl={global.ecl} />
               </TouchableOpacity>
             ))
 

@@ -23,8 +23,7 @@ export default class ReceiveScreen extends React.Component {
     this.state = {
       loading: false,
       wallet: this.props.navigation.getParam('wallet', null),
-      password: this.props.navigation.getParam('password', null),
-      ecl: this.props.navigation.getParam('ecl', null)
+      password: this.props.navigation.getParam('password', null)
     }
     
   }

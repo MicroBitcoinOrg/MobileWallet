@@ -80,7 +80,7 @@ export default class SetPasswordScreen extends React.Component {
         let count = await store.get("walletsCount")
 
         store.save('walletsCount', count == null ? 1 : count+1)
-        await store.push("wallets", await generateWallet(this.state.words, this.state.walletName, count == null ? 1 : count+1, this.state.password, this.state.type))
+        await store.push("wallets", await generateWallet(this.state.words, this.state.walletName, count == null ? 1 : count+1, this.state.password, this.state.type, global.ecl))
         
         this.setState({"loading": false})
         this.props.navigation.push('MyWallets')

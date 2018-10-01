@@ -22,11 +22,6 @@ import {
 } from './src/components/'
 
 
-/**
- * Routes
- * 
- * TODO: Replace bottom Navbar with BottomTabNavigator
- */
 const RootStack = createStackNavigator({
   RestoreWallet: RestoreWalletScreen,
   CreateWallet: CreateWalletScreen,
@@ -45,6 +40,8 @@ const RootStack = createStackNavigator({
     headerTitle: <Header />,
   }
 })
+const ElectrumCli = require('electrum-client')
+const sleep = (ms) => new Promise((resolve,_) => setTimeout(() => resolve(), ms))
 
 export default class App extends React.Component {
 
@@ -52,26 +49,13 @@ export default class App extends React.Component {
 
     super(props)
 
+    global.ecl = new ElectrumCli(7403, '13.57.248.201', 'tcp')
+
     store.get("currentAppVersion").then((ver) => {
 
-      if(ver == null) {
-
-        store.save("currentAppVersion", "0.1")
-
-      }
+        store.save("currentAppVersion", "1.0")
 
     })
-
-    store.get("prevAppVersion").then((ver) => {
-
-      if(ver == null) {
-
-        store.save("prevAppVersion", "-")
-
-      }
-
-    })
-    
 
   }
 

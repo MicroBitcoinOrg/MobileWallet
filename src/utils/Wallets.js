@@ -89,9 +89,8 @@ export var decryptData = (data, key) => {
     return data
 }
 
-export const generateWallet = async(mnemonic, title, id, password, type) => {
+export const generateWallet = async(mnemonic, title, id, password, type, ecl) => {
 
-    const ecl = new ElectrumCli(7403, '13.57.248.201', 'tcp')
     const seed = getSeed(mnemonic)
     const hdKey = getHDKey(seed)
     const firstPair = hdKey.derive("m/44'/0'/0'/0/0")
@@ -126,7 +125,8 @@ export const generateWallet = async(mnemonic, title, id, password, type) => {
 
         try {
 
-            await ecl.connect()
+            await global.ecl.connect()
+            
             var i = 1
             var k = 21
 

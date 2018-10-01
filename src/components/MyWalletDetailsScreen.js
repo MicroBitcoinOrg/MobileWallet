@@ -36,8 +36,7 @@ export default class MyWalletDetailsScreen extends React.Component {
       transactions: null,
       addressQueue: [],
       wallet: this.props.navigation.getParam('wallet', null),
-      password: this.props.navigation.getParam('password', null),
-      ecl: this.props.navigation.getParam('ecl', null)
+      password: this.props.navigation.getParam('password', null)
 
     }
 
@@ -126,7 +125,17 @@ export default class MyWalletDetailsScreen extends React.Component {
 
   updateWallet = async() => {
 
-    this.state.ecl.subscribe.on('blockchain.address.subscribe', (res) => { this.updateTransactions(res[0]) })
+    // global.ecl.close()
+    try {
+
+      await global.ecl.connect()
+      global.ecl.subscribe.on('blockchain.address.subscribe', (res) => { this.updateTransactions(res[0]) })
+
+    } catch (e) {
+
+      console.log(e)
+
+    }
 
     if (this.state.transactions == null) {
 
@@ -136,7 +145,7 @@ export default class MyWalletDetailsScreen extends React.Component {
 
       for (var i = 0; i < this.state.wallet.addresses.length; i++) {
         
-        await this.state.ecl.blockchainAddress_subscribe(this.state.wallet.addresses[i].address)
+        await global.ecl.blockchainAddress_subscribe(this.state.wallet.addresses[i].address)
       
       }
 
@@ -154,15 +163,16 @@ export default class MyWalletDetailsScreen extends React.Component {
     }, 30000)
 
     while(!this.isCancelled){
-        await sleep(3000)
-        const ver = await this.state.ecl.server_version()
+
+        await sleep(10000)
+        const ver = await global.ecl.server_version()
+
     }
 
   }
 
   updateBalance = async() => {
 
-    // alert(this.state.updatingBalance)
     !this.isCancelled && this.setState({updatingBalance: true})
 
     var promises = []
@@ -172,7 +182,7 @@ export default class MyWalletDetailsScreen extends React.Component {
 
       try{
 
-        balance += (await this.state.ecl.blockchainAddress_getBalance(this.state.wallet.addresses[i].address)).confirmed
+        balance += (await global.ecl.blockchainAddress_getBalance(this.state.wallet.addresses[i].address)).confirmed
         
       } catch (e) {
 
@@ -185,7 +195,6 @@ export default class MyWalletDetailsScreen extends React.Component {
     }
 
     !this.isCancelled && this.setState({updatingBalance: false})
-    // alert(this.state.updatingBalance)
 
   }
 
@@ -221,7 +230,7 @@ export default class MyWalletDetailsScreen extends React.Component {
 
       try {
         
-        history = await this.state.ecl.blockchainAddress_history(address, 0)
+        history = await global.ecl.blockchainAddress_history(address, 0)
 
       
       } catch (e) {
@@ -325,14 +334,37 @@ export default class MyWalletDetailsScreen extends React.Component {
     for (var j = this.state.wallet.addresses.length - 1; j >= 0; j--) {
 
         if (!this.isCancelled) {
+          alert(global.ecl.status)
+          if (!global.ecl.status) {
+
+            if (this.state.wallet.addresses[j].transactions.length > 0) {
+
+              transactions[this.state.wallet.addresses[j].address] = this.state.wallet.addresses[j].transactions
+
+            }
+            
+            !this.isCancelled && this.setState({'transactions': transactions})
+            continue
+
+          }
 
           let index = j
-          let sub = await this.state.ecl.blockchainAddress_subscribe(this.state.wallet.addresses[j].address)
-          var history = null
 
           try {
 
-            history = await this.state.ecl.blockchainAddress_history(this.state.wallet.addresses[j].address, 0)
+            global.ecl.blockchainAddress_subscribe(this.state.wallet.addresses[j].address)
+
+          } catch (e) {
+
+            console.log(e)
+
+          }
+
+          var history
+
+          try {
+
+            history = await global.ecl.blockchainAddress_history(this.state.wallet.addresses[j].address, 0)
 
           } catch (e) {
 
@@ -427,7 +459,7 @@ export default class MyWalletDetailsScreen extends React.Component {
     
     try {
 
-      transaction = await this.state.ecl.blockchainTransaction_getVerbose(tx)
+      transaction = await global.ecl.blockchainTransaction_getVerbose(tx)
 
     } catch (e) {
 
@@ -466,7 +498,7 @@ export default class MyWalletDetailsScreen extends React.Component {
 
         let kIndex = k
 
-          promises.push(this.state.ecl.blockchainTransaction_getVerbose(transaction.vin[k].txid).then((verbose) => {
+          promises.push(global.ecl.blockchainTransaction_getVerbose(transaction.vin[k].txid).then((verbose) => {
 
               if (address == verbose.vout[transaction.vin[kIndex].vout].scriptPubKey.addresses[0]) {
 
@@ -550,7 +582,7 @@ export default class MyWalletDetailsScreen extends React.Component {
             <Loader loading={true} />
           }
           <View style={styles.versionContainer}>
-            <Text style={{"fontSize": 14, "textAlign": "center", "color": "black"}}>Alpha release 0.2</Text>
+            <Text style={{"fontSize": 14, "textAlign": "center", "color": "black"}}>Beta release 1.0</Text>
           </View>
           <View style={styles.balanceContainer}>
           {transactions == null || updatingBalance ? <ActivityIndicator style={styles.balanceLoading} size="small" color="#fff" /> : <TouchableOpacity onPress={this.updateBalance}><Text style={styles.balanceText}>{`${balance/10000} MBC`}</Text></TouchableOpacity>}
@@ -577,7 +609,7 @@ export default class MyWalletDetailsScreen extends React.Component {
           </ScrollView>
           <View style={styles.navbar}>
             <TouchableOpacity
-              onPress={() => this.props.navigation.navigate('WalletReceive', {'wallet': wallet, 'password': password, 'ecl': ecl})}
+              onPress={() => this.props.navigation.navigate('WalletReceive', {'wallet': wallet, 'password': password})}
               style={styles.navbarIconButton}>
               <NavbarButton label='Receive' icon='login' />
             </TouchableOpacity>
@@ -586,7 +618,7 @@ export default class MyWalletDetailsScreen extends React.Component {
               <NavbarButton label='Wallets' icon='wallet' />
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => this.props.navigation.navigate('WalletSend', {'wallet': wallet, 'password': password, 'ecl': ecl})}
+              onPress={() => this.props.navigation.navigate('WalletSend', {'wallet': wallet, 'password': password})}
               style={styles.navbarIconButton}>
               <NavbarButton label='Send' icon='log-out' />
             </TouchableOpacity>
