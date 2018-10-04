@@ -8,9 +8,9 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import Loader from './Loader'
+import Loader from './Loader';
 import store from 'react-native-simple-store';
-import { generateWallet } from '../utils/Wallets'
+import helpers from '../utils/Helpers';
 
 export default class SetPasswordScreen extends React.Component {
 
@@ -30,14 +30,9 @@ export default class SetPasswordScreen extends React.Component {
 
   }
 
-  componentWillUnmount() {
+  componentWillUnmount() { }
 
-  }
-
-  componentDidMount() {
-
-
-  }
+  componentDidMount() { }
 
   // Align title image to center on Android
   static navigationOptions = {
@@ -80,7 +75,7 @@ export default class SetPasswordScreen extends React.Component {
         let count = await store.get("walletsCount")
 
         store.save('walletsCount', count == null ? 1 : count+1)
-        await store.push("wallets", await generateWallet(this.state.words, this.state.walletName, count == null ? 1 : count+1, this.state.password, this.state.type, global.ecl))
+        await store.push("wallets", await helpers.generateWallet(this.state.words, this.state.walletName, count == null ? 1 : count+1, this.state.password, this.state.type, global.ip, global.port))
         
         this.setState({"loading": false})
         this.props.navigation.push('MyWallets')

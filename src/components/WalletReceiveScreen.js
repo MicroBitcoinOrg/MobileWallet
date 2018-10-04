@@ -12,45 +12,41 @@ import QRCode from 'react-native-qrcode'
 import NavbarButton from './NavbarButton'
 import store from 'react-native-simple-store'
 import Loader from './Loader'
-import { generateChildWallet } from '../utils/Wallets'
+import helpers from '../utils/Helpers';
 
 export default class ReceiveScreen extends React.Component {
   
   constructor(props) {
 
     super(props);
-
+    this.walletUtils = this.props.navigation.getParam('walletUtils', null);
     this.state = {
       loading: false,
-      wallet: this.props.navigation.getParam('wallet', null),
-      password: this.props.navigation.getParam('password', null)
+      wallet: this.walletUtils.wallet
     }
     
   }
 
-  generateNewAddress = async() => {
+  generateNewAddress = () => {
+    this.setState({loading: true})
+    store.get("wallets").then((res) => {
 
-    const { wallet, password } = this.state
-
-    this.setState({"loading": true})
-    store.get('wallets').then((res) => {
+      let address = helpers.generateNextAddress(this.walletUtils.wallet, this.walletUtils.password, 0);
+      this.walletUtils.wallet.addresses.external[address.address] = address.data;
+      this.walletUtils.wallet.addresses.currentExternal = address.address;
       
       for (var i = 0; i < res.length; i++) {
-        
-        if(res[i].id == wallet.id) {
-          
-          res[i].addresses.push(generateChildWallet(res[i].addresses.length, wallet.mnemonicPhrase, password))
-          this.setState({wallet: res[i]})
-          break
-
+        if(res[i].id == this.walletUtils.wallet.id) {
+          res[i] = this.walletUtils.wallet;
+          break;
         }
-
       }
-      store.save('wallets', res)
-      this.setState({"loading": false})
+
+      store.save('wallets', res);
+      this.setState({wallet: this.walletUtils.wallet});
+      this.setState({loading: false});
 
     });
-
   }
 
   static navigationOptions = () => {
@@ -65,7 +61,7 @@ export default class ReceiveScreen extends React.Component {
 
   render() {
 
-    const { wallet } = this.state
+    const { wallet, loading } = this.state
 
     return(
       <View style={styles.container}>
@@ -77,19 +73,19 @@ export default class ReceiveScreen extends React.Component {
           <View style={styles.qrContainer}>
             <Text style={styles.txtTitle}>Receive</Text>
             <QRCode
-              value={"microbitcoin:" + wallet.addresses[wallet.addresses.length-1].address}
+              value={"microbitcoin:" + wallet.addresses.currentExternal}
               size={240}
               bgColor='#000672'
               fgColor='white'
             />
-            <Text selectable style={styles.txtAddress}>{wallet.addresses[wallet.addresses.length-1].address}</Text>
+            <Text selectable style={styles.txtAddress}>{wallet.addresses.currentExternal}</Text>
           </View>
         </View>
         <View style={styles.spacing}>
           {
-            wallet.addresses.map((address,i) => (
+            Object.keys(wallet.addresses.external).map((address, i) => (
               <TouchableOpacity key={i}>
-                {wallet.addresses.length-1 != i ? <MyWalletAddress address={address} /> : null}
+                <MyWalletAddress address={address} />
               </TouchableOpacity>
             ))
           }
@@ -117,7 +113,7 @@ class MyWalletAddress extends React.Component {
     const { address } = this.props
     return(
       <View style={styles.addressContainer}>
-        <Text selectable style={styles.address}>{address.address}</Text>
+        <Text selectable style={styles.address}>{address}</Text>
       </View>
     )
   }

@@ -18,9 +18,7 @@ import store from 'react-native-simple-store'
 export default class WalletSettingsScreen extends React.Component {
 
   constructor(props) {
-
     super(props)
-
     this.isCancelled = false
     this.state = {
 
@@ -28,49 +26,32 @@ export default class WalletSettingsScreen extends React.Component {
       password: this.props.navigation.getParam('password', null)
 
     }
-
   }
 
   static navigationOptions = () => {
-
     return {
       headerRight: (
         <View></View>
       )
     }
-
   }
 
   componentWillUnmount() {
-
       this.isCancelled = true
   }
 
   clearTransactions = () => {
-
     store.get('wallets').then((res) => {
-              
       for (var i = 0; i < res.length; i++) {
-        
         if (res[i].id == this.state.wallet.id) {
-          
-          for (var k = 0; k < res[i].addresses.length; k++) {
-
-            res[i].addresses[k].transactions = []
-
-          }
-
+          res[i].transactions = {}
           this.setState({wallet: res[i]})
           break
-
         }
-
       }
       store.save('wallets', res)
       this.props.navigation.push("MyWallets")
-
     })
-
   }
  
   removeWallet = () => {
@@ -106,23 +87,17 @@ export default class WalletSettingsScreen extends React.Component {
   }
 
   changeHistoryCount = (itemValue) => {
-
     store.get('wallets').then((res) => {
-              
       for (var i = 0; i < res.length; i++) {
-        
         if (res[i].id == this.state.wallet.id) {
-          
           res[i].settings.historyCount = itemValue
           this.setState({wallet: res[i]})
           break
-
         }
-
       }
+
       store.save('wallets', res)
     })
-
   }
 
   render() {

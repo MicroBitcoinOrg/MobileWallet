@@ -10,8 +10,8 @@ import {
   View
 } from 'react-native'
 
-import store from 'react-native-simple-store'
-import { generateWallet, generateMnemonic } from '../utils/Wallets'
+import store from 'react-native-simple-store';
+import helpers from '../utils/Helpers';
 /**
  * CreateWalletScreen
  *
@@ -37,7 +37,7 @@ export default class CreateWalletScreen extends React.Component {
   }
 
   componentDidMount() {
-    this.setState({ words: generateMnemonic() })
+    this.setState({ words: helpers.generateMnemonic() })
   }
 
   onConfirm = () => {

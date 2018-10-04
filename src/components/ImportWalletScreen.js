@@ -10,8 +10,7 @@ import {
   View
 } from 'react-native'
 
-import store from 'react-native-simple-store'
-import { generateWallet } from '../utils/Wallets'
+import store from 'react-native-simple-store';
 /**
  * ImportWalletScreen
  *

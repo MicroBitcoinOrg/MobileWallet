@@ -9,8 +9,8 @@ import {
   View
 } from 'react-native';
 
-import store from 'react-native-simple-store'
-import { decryptData } from '../utils/Wallets'
+import store from 'react-native-simple-store';
+import helpers from '../utils/Helpers';
 
 export default class openPasswordWalletScreen extends React.Component {
 
@@ -20,8 +20,7 @@ export default class openPasswordWalletScreen extends React.Component {
 
     this.state = {
       password: "",
-      wallet: this.props.navigation.getParam('wallet', null),
-      ecl: this.props.navigation.getParam('ecl', null)
+      wallet: this.props.navigation.getParam('wallet', null)
     }
 
     const willFocusSubscription = this.props.navigation.addListener(
@@ -48,14 +47,14 @@ export default class openPasswordWalletScreen extends React.Component {
 
     } else {
 
-      if(decryptData(this.state.wallet['password'], this.state.password) != this.state.password) {
+      if(helpers.decryptData(this.state.wallet['password'], this.state.password) != this.state.password) {
 
         Alert.alert('Invalid password!')
         return
 
       } else {
 
-        this.props.navigation.push('MyWalletDetails', {"wallet": this.state.wallet, "password": this.state.password, "ecl": this.state.ecl})
+        this.props.navigation.push('MyWalletDetails', {"wallet": this.state.wallet, "password": this.state.password})
         return
         
       }

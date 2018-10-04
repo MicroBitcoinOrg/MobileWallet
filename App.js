@@ -40,8 +40,6 @@ const RootStack = createStackNavigator({
     headerTitle: <Header />,
   }
 })
-const ElectrumCli = require('electrum-client')
-const sleep = (ms) => new Promise((resolve,_) => setTimeout(() => resolve(), ms))
 
 export default class App extends React.Component {
 
@@ -49,33 +47,25 @@ export default class App extends React.Component {
 
     super(props)
 
-    global.ecl = new ElectrumCli(7403, '13.57.248.201', 'tcp')
-    global.version = "1.0"
+    global.port = 7403;
+    global.ip = "13.57.248.201";
+    global.version = "1.1";
 
   }
 
   componentDidMount() {
 
     store.get("wallets").then((wallets) => {
-
       if (wallets != null) {
-
           for (var i = 0; i < wallets.length; i++) {
-
             if (!("settings" in wallets[i])) {
-
               wallets[i]['settings'] = {'historyCount': '20'}
-
             }
-
           }
 
           store.save('wallets', wallets)
-
       }
-
     })
-
   }
 
   render() {

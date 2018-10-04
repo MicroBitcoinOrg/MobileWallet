@@ -9,7 +9,6 @@ import {
 } from 'react-native'
 import Icon from 'react-native-vector-icons/Entypo'
 import Logo from '../assets/logo_bare.png'
-import { decryptData } from '../utils/Wallets'
 
 export default class MyWalletItem extends React.Component {
 
@@ -26,7 +25,6 @@ export default class MyWalletItem extends React.Component {
   componentDidMount() {
 
     this.updateBalance()
-    // Alert.alert("Engineer message", JSON.stringify(this.props.wallet))
 
   }
 
@@ -34,11 +32,30 @@ export default class MyWalletItem extends React.Component {
 
     var balance = 0
 
-    for (var i = 0; i < this.props.wallet.addresses.length; i++) {
+    for (var address in this.props.wallet.addresses.external) {
 
       try {
 
-        this.props.ecl.blockchainAddress_getBalance(this.props.wallet.addresses[i].address).then((res) => {
+        this.props.ecl.blockchainAddress_getBalance(address).then((res) => {
+
+          balance += res.confirmed
+          this.setState({balance: balance})
+
+        })
+
+      } catch (e) {
+
+        console.log(e)
+
+      }
+
+    }
+
+    for (var address in this.props.wallet.addresses.internal) {
+
+      try {
+
+        this.props.ecl.blockchainAddress_getBalance(address).then((res) => {
 
           balance += res.confirmed
           this.setState({balance: balance})
