@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import Loader from './Loader';
 import store from 'react-native-simple-store';
-import helpers from '../utils/Helpers';
+import {generateWallet, findAddresses} from '../utils/Helpers';
 
 export default class SetPasswordScreen extends React.Component {
 
@@ -75,16 +75,28 @@ export default class SetPasswordScreen extends React.Component {
         let count = await store.get("walletsCount")
 
         store.save('walletsCount', count == null ? 1 : count+1)
-        await store.push("wallets", await helpers.generateWallet(this.state.words, this.state.walletName, count == null ? 1 : count+1, this.state.password, this.state.type, global.ip, global.port))
-        
+
+        var wallet = await generateWallet(this.state.words, this.state.walletName, count == null ? 1 : count+1, this.state.password);
+        await store.push("wallets", wallet);
+
+        if (this.state.type == "import") {
+          var promises = [];
+          console.log("importing...");
+          promises.push(findAddresses(wallet, this.state.password, global.ecl, 0));
+          promises.push(findAddresses(wallet, this.state.password, global.ecl, 1));
+          await Promise.all(promises);
+        }
+
         this.setState({"loading": false})
-        this.props.navigation.push('MyWallets')
+        this.props.navigation.replace('MyWallets')
         
       }
 
     }
 
   }
+
+  
 
   render() {
 
@@ -131,7 +143,7 @@ export default class SetPasswordScreen extends React.Component {
         <View style={styles.btnConfirmContainer}>
           <TouchableOpacity
             style={styles.btnConfirm}
-            onPress={this.onSave}>
+            onPress={() => this.onSave()}>
             <Text style={styles.btnConfirmText}>SAVE PASSWORD</Text>
           </TouchableOpacity>
         </View>

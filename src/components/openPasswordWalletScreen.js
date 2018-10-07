@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 
 import store from 'react-native-simple-store';
-import helpers from '../utils/Helpers';
+import {decryptData} from '../utils/Helpers';
 
 export default class openPasswordWalletScreen extends React.Component {
 
@@ -38,7 +38,7 @@ export default class openPasswordWalletScreen extends React.Component {
     headerRight: Platform.OS === 'android' ? <View /> : ''
   }
 
-  decrypt = () => {
+  decrypt = async() => {
 
     if(this.state.password.length < 4) {
 
@@ -47,7 +47,7 @@ export default class openPasswordWalletScreen extends React.Component {
 
     } else {
 
-      if(helpers.decryptData(this.state.wallet['password'], this.state.password) != this.state.password) {
+      if(decryptData(this.state.wallet['password'], this.state.password) != this.state.password) {
 
         Alert.alert('Invalid password!')
         return

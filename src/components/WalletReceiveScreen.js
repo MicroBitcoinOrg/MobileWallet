@@ -12,7 +12,7 @@ import QRCode from 'react-native-qrcode'
 import NavbarButton from './NavbarButton'
 import store from 'react-native-simple-store'
 import Loader from './Loader'
-import helpers from '../utils/Helpers';
+import {generateNextAddress} from '../utils/Helpers';
 
 export default class ReceiveScreen extends React.Component {
   
@@ -31,7 +31,7 @@ export default class ReceiveScreen extends React.Component {
     this.setState({loading: true})
     store.get("wallets").then((res) => {
 
-      let address = helpers.generateNextAddress(this.walletUtils.wallet, this.walletUtils.password, 0);
+      let address = generateNextAddress(this.walletUtils.wallet, this.walletUtils.password, 0);
       this.walletUtils.wallet.addresses.external[address.address] = address.data;
       this.walletUtils.wallet.addresses.currentExternal = address.address;
       

@@ -1,19 +1,16 @@
-import store from 'react-native-simple-store'
-import helpers from './Helpers'
+import {generateNextAddress, saveWallet, decryptData, findAddresses} from './Helpers'
 
-var ElectrumCli = require('electrum-client')
 var coinjs = require('coinjs')
 
 export class Wallet {
   
-	constructor(wallet, password, ip, port) {
+	constructor(wallet, password, ecl) {
 		this.wallet = wallet;
-		this.ecl = new ElectrumCli(port, ip, 'tcp');
+		this.ecl = ecl;
 		this.hashes = [];
 		this.password = password;
 		this.mempoolChecking = false;
 		this.ecl.subscribe.on('blockchain.address.subscribe', (res) => { this.checkHistory(res[0]) });
-		this.connect();
 		for (var key in this.wallet.transactions) this.hashes.push(this.wallet.transactions[key].hash);
 	}
 
@@ -121,10 +118,10 @@ export class Wallet {
 
 		if (outputsAmount-amount-fee != 0 && this.wallet.addresses.currentInternal != null) {
 			outputs.push({"address": this.wallet.addresses.currentInternal, "amount": (outputsAmount-amount-fee).toFixed(3).toString()});
-			address = helpers.generateNextAddress(this.wallet, this.password, 1);
+			address = generateNextAddress(this.wallet, this.password, 1);
 			this.wallet.addresses.internal[address.address] = address.data;
           	this.wallet.addresses.currentInternal = address.address;
-			this.saveWallet();
+			saveWallet(this.wallet);
 		}
 
 		let tx = this.createTransaction(inputs, outputs).serialize()
@@ -132,9 +129,9 @@ export class Wallet {
 		if (tx != null) {
 			for (var i = 0; i < usedAddresses.length; i++) {
 				if (this.wallet.addresses.external[usedAddresses[i]] !== undefined) {
-					tx = this.signTransaction(tx, helpers.decryptData(this.wallet.addresses.external[usedAddresses[i]].privateKey, this.password))
+					tx = this.signTransaction(tx, decryptData(this.wallet.addresses.external[usedAddresses[i]].privateKey, this.password))
 				} else {
-					tx = this.signTransaction(tx, helpers.decryptData(this.wallet.addresses.internal[usedAddresses[i]].privateKey, this.password))
+					tx = this.signTransaction(tx, decryptData(this.wallet.addresses.internal[usedAddresses[i]].privateKey, this.password))
 				}
 				
 			}
@@ -146,14 +143,6 @@ export class Wallet {
 			return {error: e.message}
 		}
 
-	}
-
-	async connect () {
-		await this.ecl.connect();
-	}
-
-	async ping() {
-		const ver = await this.ecl.server_version();
 	}
 
 	async subscribeToAddresses() {
@@ -274,6 +263,7 @@ export class Wallet {
 		
 		for (var i = 0; i < allHistory.length; i++) {
 			if(!this.hashes.includes(allHistory[i].tx_hash)) {
+				this.hashes.push(allHistory[i].tx_hash);
 				promises.push(this.addTransaction(allHistory[i].tx_hash));
 				updatedTransactions = true;
 			}
@@ -283,7 +273,7 @@ export class Wallet {
 		
 		if (updatedTransactions) {
 			this.updateBalance();
-			this.saveWallet();
+			saveWallet(this.wallet);
 		}
 	}
 
@@ -304,7 +294,7 @@ export class Wallet {
 		                    });
 					this.wallet.transactions[tx.time] = this.wallet.mempool[i];
 					this.wallet.mempool.splice(i, 1);
-					this.saveWallet();
+					saveWallet(this.wallet);
 					this.updateBalance();
 				}
 			}
@@ -313,19 +303,6 @@ export class Wallet {
 		}
 
 		this.mempoolChecking = false; 
-	}
-
-	async saveWallet() {
-		store.get('wallets').then((res) => {
-          for (var i = 0; i < res.length; i++) {
-            if(res[i].id == this.wallet.id) {
-              res[i] = this.wallet;
-              break;
-            }
-          }
-
-          store.save('wallets', res);
-        })
 	}
 
 	async estimateFee() {
@@ -350,7 +327,7 @@ export class Wallet {
 	    }
 
 	    this.wallet.balance = balance;
-	    this.saveWallet();
+	    saveWallet(this.wallet);
   	}
 
 }

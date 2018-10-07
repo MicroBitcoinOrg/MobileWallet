@@ -11,7 +11,7 @@ import {
 } from 'react-native'
 
 import store from 'react-native-simple-store';
-import helpers from '../utils/Helpers';
+import {generateMnemonic} from '../utils/Helpers';
 /**
  * CreateWalletScreen
  *
@@ -37,7 +37,7 @@ export default class CreateWalletScreen extends React.Component {
   }
 
   componentDidMount() {
-    this.setState({ words: helpers.generateMnemonic() })
+    this.setState({ words: generateMnemonic() })
   }
 
   onConfirm = () => {
@@ -58,6 +58,7 @@ export default class CreateWalletScreen extends React.Component {
 
       } else {
 
+        this.createInProcess = false
         this.props.navigation.navigate('SetPassword', {"words": this.state.words, "walletName": this.state.walletName, "type": "create"})
 
       }

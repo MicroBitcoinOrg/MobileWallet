@@ -23,9 +23,7 @@ export default class MyWalletItem extends React.Component {
   }
 
   componentDidMount() {
-
     this.updateBalance()
-
   }
 
   updateBalance = async() => {

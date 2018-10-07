@@ -23,7 +23,7 @@ export default class MyWalletDetailsScreen extends React.Component {
 
   constructor(props) {
     super(props)
-    this.walletUtils = new Wallet(this.props.navigation.getParam('wallet', null), this.props.navigation.getParam('password', null), global.ip, global.port);
+    this.walletUtils = new Wallet(this.props.navigation.getParam('wallet', null), this.props.navigation.getParam('password', null), global.ecl);
     this.walletUtils.subscribeToAddresses();
     this.walletUtils.checkHistory();
     this.isCancelled = false;
@@ -79,7 +79,6 @@ export default class MyWalletDetailsScreen extends React.Component {
 
   updateWallet() {
     this.setState({wallet: this.walletUtils.wallet});
-    this.walletUtils.ping();
   }
 
   static navigationOptions = ({ navigation }) => {
@@ -146,7 +145,7 @@ export default class MyWalletDetailsScreen extends React.Component {
               ))
             }
 
-            {wallet.transactions.length > 0 ? <Text style={styles.addressHeader}>Confirmed transactions</Text> : null}
+            {Object.keys(wallet.transactions).length > 0 ? <Text style={styles.addressHeader}>Confirmed transactions</Text> : null}
             {
               wallet.transactions != null ? Object.keys(wallet.transactions).reverse().slice(0, wallet.settings.historyCount).map((tx) => (
                 <TouchableOpacity

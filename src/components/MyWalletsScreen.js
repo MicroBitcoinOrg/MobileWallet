@@ -11,15 +11,14 @@ import Icon from 'react-native-vector-icons/Entypo';
 import MyWalletItem from './MyWalletItem';
 import NavbarButton from './NavbarButton';
 import store from 'react-native-simple-store';
-
-var ElectrumCli = require('electrum-client');
+import {generateWallet, findAddresses} from '../utils/Helpers';
 
 export default class MyWalletsScreen extends React.Component {
 
   constructor(props) {
 
     super(props)
-    this.ecl = new ElectrumCli(global.port, global.ip, 'tcp');
+    this.ecl = global.ecl;
     this.state = {
       wallets: []
     }
@@ -27,8 +26,6 @@ export default class MyWalletsScreen extends React.Component {
     const willFocusSubscription = this.props.navigation.addListener(
       'willFocus',
       payload => {
-
-        this.ecl.connect();
 
         store.get('wallets').then((res) => {
 
@@ -48,16 +45,6 @@ export default class MyWalletsScreen extends React.Component {
 
       }
     )
-
-    const willBlurSubscription = this.props.navigation.addListener(
-      'willBlur',
-      payload => {
-        
-        this.ecl.close();
-
-      }
-    )
-
   }
 
   static navigationOptions = {
