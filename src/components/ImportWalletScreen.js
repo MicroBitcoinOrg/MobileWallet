@@ -78,7 +78,6 @@ export default class ImportWalletScreen extends React.Component {
   render() {
     return(
       <View style={styles.container}>
-        <ScrollView>
           <View style={styles.innerContainer}>
             <View style={styles.txtTop}>
               <Text style={styles.txtInfo}>Please enter your mnemonic phrase:</Text>
@@ -98,13 +97,15 @@ export default class ImportWalletScreen extends React.Component {
 
             <View style={styles.inputContainer}>
               <TextInput style={styles.inputPhrase}
-                placeholder = {"Type your wallet name"}
+                placeholder = {"Enter your wallet name..."}
                 onChangeText={(text) => this.setState({walletName: text})}
                 editable = {true}
                 underlineColorAndroid='transparent'
                 maxLength = {35}
               />
             </View>
+
+            <View style={styles.spacing}></View>
 
             <View>
               <Text style={styles.txtInfo}>Keep your backup phrase secure.</Text>
@@ -122,7 +123,6 @@ export default class ImportWalletScreen extends React.Component {
               <Text style={styles.txtInfo}>Back</Text>
             </TouchableOpacity>
           </View>
-        </ScrollView>
       </View>
     );
   }
@@ -151,8 +151,8 @@ const styles = StyleSheet.create({
   },
   wordsContainer: {
     backgroundColor: '#ffffff',
-    paddingTop: 24,
-    paddingBottom: 24,
+    paddingTop: 10,
+    paddingBottom: 10,
     marginBottom: 24,
     borderRadius: 16,
     width: '100%',
@@ -167,8 +167,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#ffffff',
     marginBottom: 24,
-    paddingTop: 24,
-    paddingBottom: 24,
+    paddingTop: 10,
+    paddingBottom: 10,
     borderRadius: 16,
     minWidth: '100%',
     shadowColor: '#000',
@@ -193,8 +193,8 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   inputPhrase: {
-    paddingRight: 15,
-    paddingLeft: 15,
+    paddingRight: 10,
+    paddingLeft: 10,
     minWidth: '100%',
     textAlign: 'center',
     fontSize: 18,

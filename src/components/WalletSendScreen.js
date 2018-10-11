@@ -164,15 +164,12 @@ export default class SendScreen extends React.Component {
                 multiline = {true}
                 numberOfLines = {2}
                 placeholder='BkQD9 G6Kw 1Pnq js1N vx4b eyeZ Lt1D jSsyY'
+                underlineColorAndroid='transparent'
                 style={styles.inputText}
               />
               <TouchableOpacity onPress={() => this.props.navigation.navigate('Scan')}>
                 <View style={{ alignItems: 'center'}}>
-                  <QRCode
-                  value={"MBC"}
-                  size={40}
-                  bgColor='#000672'
-                  fgColor='white'/>
+                  <Icon name="camera" size={36} style={{textAlign: 'center'}} color="#000672" />
                 </View>
               </TouchableOpacity>
 
@@ -182,6 +179,7 @@ export default class SendScreen extends React.Component {
                 onChangeText={(rAmount) => this.setState({rAmount})}
                 value={this.state.rAmount}
                 placeholder='0.1234'
+                underlineColorAndroid='transparent'
                 style={styles.inputText}
               />
 
@@ -192,6 +190,7 @@ export default class SendScreen extends React.Component {
                 value={this.state.rFees}
                 placeholder='0.001'
                 defaultValue='0.001'
+                underlineColorAndroid='transparent'
                 style={styles.inputText}
               />
               <TouchableOpacity onPress={() => this.setState({rFees: this.state.smartFee})}>
@@ -208,7 +207,7 @@ export default class SendScreen extends React.Component {
         </ScrollView>
         <View style={styles.navbar}>
           <TouchableOpacity
-            onPress={() => this.props.navigation.goBack()} style={styles.btnBack}>
+            onPress={() => this.props.navigation.goBack()} style={styles.navbarIconButton}>
             <NavbarButton label='Back' icon='back' />
           </TouchableOpacity>
         </View>
@@ -299,6 +298,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: '#000672',
     height: 64,
+  },
+  navbarIconButton: {
+    flex: 1,
+    opacity: 0.66,
   },
   btnBack: {
     flex: 1,

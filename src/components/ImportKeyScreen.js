@@ -10,27 +10,18 @@ import {
 } from 'react-native';
 
 import store from 'react-native-simple-store';
-import {decryptData} from '../utils/Helpers';
+import {encryptData, saveWallet} from '../utils/Helpers';
+var coinjs = require('coinjs');
 
 export default class openPasswordWalletScreen extends React.Component {
 
   constructor(props) {
 
     super(props);
-
+    this.walletUtils = this.props.navigation.getParam('walletUtils', null);
     this.state = {
-      password: "",
-      wallet: this.props.navigation.getParam('wallet', null)
+      key: ""
     }
-
-    const willFocusSubscription = this.props.navigation.addListener(
-      'willFocus',
-      payload => {
-
-        this.state.password = ""
-
-      }
-    )
 
   }
 
@@ -38,29 +29,27 @@ export default class openPasswordWalletScreen extends React.Component {
     headerRight: Platform.OS === 'android' ? <View /> : ''
   }
 
-  decrypt = async() => {
-
-    if(this.state.password.length < 4) {
-
-      Alert.alert('Your password must contain a minimum of 4 characters.')
-      return
-
-    } else {
-
-      if(decryptData(this.state.wallet['password'], this.state.password) != this.state.password) {
-
-        Alert.alert('Invalid password!')
-        return
-
+  import = () => {
+    if(this.state.key != "" && this.state.key != null) {
+      let address = coinjs.wif2address(this.state.key).address;
+      if(this.walletUtils.wallet.addresses.external[address] == undefined) {
+        Alert.alert("Import WIF key", `Is this your address?\n\n${address}`,
+        [
+          {text: 'No', onPress: () => false},
+          {text: 'Yes', onPress: () => {
+            this.walletUtils.wallet.addresses.external[address] = {"used": false, "privateKey": encryptData(this.state.key, this.walletUtils.password)};
+            saveWallet(this.walletUtils.wallet);
+            this.props.navigation.goBack();
+          }},
+        ],
+        { cancelable: false });
       } else {
-
-        this.props.navigation.replace('MyWalletDetails', {"wallet": this.state.wallet, "password": this.state.password})
-        return
-        
+        Alert.alert("Import WIF key", "This WIF key already exists in your wallet!");
       }
-
+    } else {
+      Alert.alert("Import WIF key", "WIF key is empty!");
     }
-
+    
   }
 
   render() {
@@ -69,17 +58,17 @@ export default class openPasswordWalletScreen extends React.Component {
       <View style={styles.container}>
 
         <View style={styles.txtTop}>
-          <Text style={styles.txtInfo}>Please type a password to unlock wallet:</Text>
+          <Text style={styles.txtInfo}>Please type a WIF key to import into wallet:</Text>
         </View>
 
         <View style={styles.passwordContainer}>
           <TextInput
             autoFocus = {true}
             secureTextEntry={true}
-            onChangeText={(password) => this.setState({password: password})}
-            value={this.state.password}
-            maxLength={32}
-            placeholder='Enter password...'
+            onChangeText={(key) => this.setState({key: key})}
+            value={this.state.key}
+            maxLength={64}
+            placeholder='Enter WIF key...'
             underlineColorAndroid='transparent'
             style={styles.inputPassword}
           />
@@ -91,8 +80,8 @@ export default class openPasswordWalletScreen extends React.Component {
         <View style={styles.btnConfirmContainer}>
           <TouchableOpacity
             style={styles.btnConfirm}
-            onPress={this.decrypt}>
-            <Text style={styles.btnConfirmText}>OPEN WALLET</Text>
+            onPress={this.import}>
+            <Text style={styles.btnConfirmText}>IMPORT WIF KEY</Text>
           </TouchableOpacity>
         </View>
 

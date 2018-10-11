@@ -18,7 +18,8 @@ import {
   WalletSendScreen,
   ScanScreen,
   openPasswordWalletScreen,
-  WalletSettingsScreen
+  WalletSettingsScreen,
+  ImportKeyScreen
 } from './src/components/'
 
 
@@ -34,6 +35,7 @@ const RootStack = createStackNavigator({
   Scan: ScanScreen,
   openPasswordWallet: openPasswordWalletScreen,
   WalletSettings: WalletSettingsScreen,
+  ImportKey: ImportKeyScreen
 }, {
   initialRouteName: 'MyWallets',
   navigationOptions: {

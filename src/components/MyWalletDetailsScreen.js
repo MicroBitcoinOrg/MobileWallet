@@ -40,6 +40,7 @@ export default class MyWalletDetailsScreen extends React.Component {
       'willFocus',
       payload => {
         this.props.navigation.setParams({navigateToSettings: this.navigateToSettings})
+        this.props.navigation.setParams({goBack: this.goBack})
         this.interval = setInterval(() => this.updateWallet(), 2000);
         this.isCancelled = false
 
@@ -86,6 +87,10 @@ export default class MyWalletDetailsScreen extends React.Component {
     return {
       headerRight: (<Icon name="dots-three-horizontal" size={18} style={{paddingRight: 10}} onPress={() => params.navigateToSettings()} color="#000672" />)
     }
+  }
+
+  goBack = () => {
+    this.props.navigation.push("MyWallets")
   }
 
   navigateToSettings = () => {

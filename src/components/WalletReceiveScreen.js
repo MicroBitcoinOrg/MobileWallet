@@ -12,7 +12,7 @@ import QRCode from 'react-native-qrcode'
 import NavbarButton from './NavbarButton'
 import store from 'react-native-simple-store'
 import Loader from './Loader'
-import {generateNextAddress} from '../utils/Helpers';
+import {generateNextAddress, saveWallet} from '../utils/Helpers';
 
 export default class ReceiveScreen extends React.Component {
   
@@ -24,27 +24,45 @@ export default class ReceiveScreen extends React.Component {
       loading: false,
       wallet: this.walletUtils.wallet
     }
+
+    const willFocusSubscription = this.props.navigation.addListener(
+      'willFocus',
+      payload => {
+        this.setState({wallet: this.walletUtils.wallet})
+      }
+    )
     
+  }
+
+  importWIFKey = () => {
+    this.props.navigation.navigate('ImportKey', {walletUtils: this.walletUtils});
+  }
+
+  changeCurrentAddress = (address) => {
+    this.walletUtils.wallet.addresses.currentExternal = address;
+    saveWallet(this.walletUtils.wallet);
+    this.setState({wallet: this.walletUtils.wallet});
   }
 
   generateNewAddress = () => {
     this.setState({loading: true})
     store.get("wallets").then((res) => {
 
-      let address = generateNextAddress(this.walletUtils.wallet, this.walletUtils.password, 0);
-      this.walletUtils.wallet.addresses.external[address.address] = address.data;
-      this.walletUtils.wallet.addresses.currentExternal = address.address;
-      
-      for (var i = 0; i < res.length; i++) {
-        if(res[i].id == this.walletUtils.wallet.id) {
-          res[i] = this.walletUtils.wallet;
-          break;
-        }
-      }
+      generateNextAddress(this.walletUtils.wallet, this.walletUtils.password, 0).then((address) => {
+        this.walletUtils.wallet.addresses.external[address.address] = address.data;
+        this.walletUtils.wallet.addresses.currentExternal = address.address;
 
-      store.save('wallets', res);
-      this.setState({wallet: this.walletUtils.wallet});
-      this.setState({loading: false});
+        for (var i = 0; i < res.length; i++) {
+          if(res[i].id == this.walletUtils.wallet.id) {
+            res[i] = this.walletUtils.wallet;
+            break;
+          }
+        }
+
+        store.save('wallets', res);
+        this.setState({wallet: this.walletUtils.wallet});
+        this.setState({loading: false});
+      })
 
     });
   }
@@ -84,8 +102,8 @@ export default class ReceiveScreen extends React.Component {
         <View style={styles.spacing}>
           {
             Object.keys(wallet.addresses.external).map((address, i) => (
-              <TouchableOpacity key={i}>
-                <MyWalletAddress address={address} />
+              <TouchableOpacity key={i} onPress={() => this.changeCurrentAddress(address)}>
+                <MyWalletAddress address={address} current={wallet.addresses.currentExternal} />
               </TouchableOpacity>
             ))
           }
@@ -94,11 +112,15 @@ export default class ReceiveScreen extends React.Component {
 
         <View style={styles.navbar}>
           <TouchableOpacity
+            onPress={this.importWIFKey} style={styles.navbarIconButton}>
+            <NavbarButton label='Import' icon='key' />
+          </TouchableOpacity>
+          <TouchableOpacity
             onPress={this.generateNewAddress} style={styles.navbarIconButton}>
             <NavbarButton label='New address' icon='plus' />
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => this.props.navigation.goBack()} style={styles.btnBack}>
+            onPress={() => this.props.navigation.goBack()} style={styles.navbarIconButton}>
             <NavbarButton label='Back' icon='back' />
           </TouchableOpacity>
         </View>
@@ -110,10 +132,10 @@ export default class ReceiveScreen extends React.Component {
 class MyWalletAddress extends React.Component {
 
   render() {
-    const { address } = this.props
+    const { address, current } = this.props
     return(
-      <View style={styles.addressContainer}>
-        <Text selectable style={styles.address}>{address}</Text>
+      <View style={[styles.addressContainer, current == address ? styles.currentAddressView : null]}>
+        <Text selectable style={[styles.address, current == address ? styles.currentAddressText : null]}>{address}</Text>
       </View>
     )
   }
@@ -131,7 +153,6 @@ const styles = StyleSheet.create({
     paddingBottom: 36,
     paddingRight: 16,
     paddingLeft: 16,
-    backgroundColor: '#000672',
     alignItems: 'center',
   },
   addressContainer: {
@@ -147,6 +168,12 @@ const styles = StyleSheet.create({
     shadowRadius: 0,
     elevation: 1,
     zIndex: 10,
+  },
+  currentAddressView: {
+    backgroundColor: '#000672',
+  },
+  currentAddressText: {
+    color: '#ffffff',
   },
   address: {
     fontSize: 14,
@@ -187,9 +214,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: '#000672',
     height: 64,
-  },
-  btnBack: {
-    flex: 1,
   },
   spacing: {
     marginTop: 10

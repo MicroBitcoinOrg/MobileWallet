@@ -1,6 +1,5 @@
-import {generateNextAddress, saveWallet, decryptData, findAddresses} from './Helpers'
-
-var coinjs = require('coinjs')
+import {generateNextAddress, saveWallet, decryptData, findAddresses} from './Helpers';
+var coinjs = require('coinjs');
 
 export class Wallet {
   
@@ -118,7 +117,7 @@ export class Wallet {
 
 		if (outputsAmount-amount-fee != 0 && this.wallet.addresses.currentInternal != null) {
 			outputs.push({"address": this.wallet.addresses.currentInternal, "amount": (outputsAmount-amount-fee).toFixed(3).toString()});
-			address = generateNextAddress(this.wallet, this.password, 1);
+			address = await generateNextAddress(this.wallet, this.password, 1);
 			this.wallet.addresses.internal[address.address] = address.data;
           	this.wallet.addresses.currentInternal = address.address;
 			saveWallet(this.wallet);

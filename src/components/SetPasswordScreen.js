@@ -165,10 +165,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: '#f2f2f2',
-    paddingTop: 36,
-    paddingBottom: 36,
-    paddingRight: 24,
-    paddingLeft: 24,
+    padding: 24,
   },
   txtTop: {
     marginBottom: 16,
@@ -180,7 +177,7 @@ const styles = StyleSheet.create({
   passwordContainer: {
     flexDirection: 'row',
     backgroundColor: '#ffffff',
-    padding: 24,
+    padding: 10,
     borderRadius: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
