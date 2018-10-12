@@ -122,14 +122,13 @@ export const generateAddress = async(range, mnemonic, password, chain, seed = nu
     }
     
     const hdKey = getHDKey(seed);
-    var address = {};
-    var childKeys;
 
     if (Array.isArray(range)) {
         var returnObj = [];
-        for (var i = range[0]; i < range[1]; i++) {
 
-            childKeys = hdKey.derive("m/44'/0'/0'/" + chain + "/" + i);
+        for (var i = range[0]; i < range[1]; i++) {
+            var address = {};
+            var childKeys = hdKey.derive("m/44'/0'/0'/" + chain + "/" + i);
 
             address['privateKey'] = encryptData(fromPrivateKeyToWIF(getPrivateKey(childKeys).toString('hex')), password);
             address['used'] = false;
@@ -139,7 +138,8 @@ export const generateAddress = async(range, mnemonic, password, chain, seed = nu
         return returnObj; 
     } else {
         var returnObj;
-        childKeys = hdKey.derive("m/44'/0'/0'/" + chain + "/" + range);
+        var address = {};
+        var childKeys = hdKey.derive("m/44'/0'/0'/" + chain + "/" + range);
 
         address['privateKey'] = encryptData(fromPrivateKeyToWIF(getPrivateKey(childKeys).toString('hex')), password);;
         address['used'] = false;

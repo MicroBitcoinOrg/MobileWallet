@@ -1,5 +1,6 @@
 import React from 'react'
 import {
+  Platform,
   TouchableOpacity,
   Image,
   StyleSheet,
@@ -21,6 +22,7 @@ export default class RestoreWalletScreen extends React.Component {
   static navigationOptions = () => {
 
     return {
+      headerLeft: Platform.OS === 'android' ? <View /> : '',
       headerRight: (
         <View></View>
       )

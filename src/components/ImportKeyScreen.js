@@ -38,6 +38,8 @@ export default class openPasswordWalletScreen extends React.Component {
           {text: 'No', onPress: () => false},
           {text: 'Yes', onPress: () => {
             this.walletUtils.wallet.addresses.external[address] = {"used": false, "privateKey": encryptData(this.state.key, this.walletUtils.password)};
+            this.walletUtils.updateBalance();
+            this.walletUtils.subscribeToAddresses();
             saveWallet(this.walletUtils.wallet);
             this.props.navigation.goBack();
           }},

@@ -43,17 +43,13 @@ const RootStack = createStackNavigator({
   }
 })
 
-var ElectrumCli = require('electrum-client')
+const ElectrumCli = require('electrum-client')
 
 export default class App extends React.Component {
 
   constructor(props) {
 
     super(props)
-
-    this.state = {
-      appState: AppState.currentState
-    };
     this.pingInterval = null;
 
     global.port = 7403;
@@ -89,16 +85,6 @@ export default class App extends React.Component {
           store.save('wallets', wallets)
       }
     })
-  }
-
-  handleAppStateChange = (nextAppState) => {
-    if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
-      this.ping();
-    } else {
-      clearInterval(this.pingInterval);
-      global.ecl.close();
-    }
-    this.setState({appState: nextAppState});
   }
 
   render() {

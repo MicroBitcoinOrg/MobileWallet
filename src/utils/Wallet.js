@@ -7,10 +7,24 @@ export class Wallet {
 		this.wallet = wallet;
 		this.ecl = ecl;
 		this.hashes = [];
+		this.mempoolHashes = [];
 		this.password = password;
 		this.mempoolChecking = false;
 		this.ecl.subscribe.on('blockchain.address.subscribe', (res) => { this.checkHistory(res[0]) });
 		for (var key in this.wallet.transactions) this.hashes.push(this.wallet.transactions[key].hash);
+		
+		for (var i = 0; i < this.wallet.mempool.length; i++) {
+			this.mempoolHashes.push(this.wallet.mempool[i].hash);
+		}
+
+		if (this.wallet.mempool.length > 0 && !this.mempoolChecking) {
+			this.checkMempool();
+		}
+
+		for(var address in this.wallet.addresses.external) {
+			console.log('ADDRESS - ', address);
+			console.log('PRIV - ',decryptData(this.wallet.addresses.external[address].privateKey, this.password));
+		}
 	}
 
 	onlyUnique(value, index, self) { 
@@ -117,10 +131,6 @@ export class Wallet {
 
 		if (outputsAmount-amount-fee != 0 && this.wallet.addresses.currentInternal != null) {
 			outputs.push({"address": this.wallet.addresses.currentInternal, "amount": (outputsAmount-amount-fee).toFixed(3).toString()});
-			address = await generateNextAddress(this.wallet, this.password, 1);
-			this.wallet.addresses.internal[address.address] = address.data;
-          	this.wallet.addresses.currentInternal = address.address;
-			saveWallet(this.wallet);
 		}
 
 		let tx = this.createTransaction(inputs, outputs).serialize()
@@ -128,8 +138,12 @@ export class Wallet {
 		if (tx != null) {
 			for (var i = 0; i < usedAddresses.length; i++) {
 				if (this.wallet.addresses.external[usedAddresses[i]] !== undefined) {
+					console.log("ADDRESS:", usedAddresses[i])
+					console.log("PRV KEY:", decryptData(this.wallet.addresses.external[usedAddresses[i]].privateKey, this.password))
 					tx = this.signTransaction(tx, decryptData(this.wallet.addresses.external[usedAddresses[i]].privateKey, this.password))
 				} else {
+					console.log("ADDRESS:", usedAddresses[i])
+					console.log("PRV KEY:", decryptData(this.wallet.addresses.internal[usedAddresses[i]].privateKey, this.password))
 					tx = this.signTransaction(tx, decryptData(this.wallet.addresses.internal[usedAddresses[i]].privateKey, this.password))
 				}
 				
@@ -137,7 +151,12 @@ export class Wallet {
 		}
 
 		try {
-			return await this.ecl.blockchainTransaction_broadcast(tx)
+			let broadcast = await this.ecl.blockchainTransaction_broadcast(tx)
+			let address = await generateNextAddress(this.wallet, this.password, 1);
+			this.wallet.addresses.internal[address.address] = address.data;
+          	this.wallet.addresses.currentInternal = address.address;
+			saveWallet(this.wallet);
+			return broadcast;
 		} catch (e) {
 			return {error: e.message}
 		}
@@ -219,7 +238,8 @@ export class Wallet {
 		} else {
 			transaction.date = null;
 
-			if (!this.wallet.mempool.includes(transaction)) {
+			if (!this.mempoolHashes.includes(transactionHash)) {
+				this.mempoolHashes.push(transactionHash);
 				this.wallet.mempool.push(transaction);
 			
 				if (!this.mempoolChecking) {

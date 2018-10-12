@@ -85,7 +85,7 @@ export default class MyWalletDetailsScreen extends React.Component {
   static navigationOptions = ({ navigation }) => {
     const { params = {} } = navigation.state
     return {
-      headerRight: (<Icon name="dots-three-horizontal" size={18} style={{paddingRight: 10}} onPress={() => params.navigateToSettings()} color="#000672" />)
+      headerRight: (<Icon name="dots-three-vertical" size={18} style={{paddingRight: 10}} onPress={() => params.navigateToSettings()} color="#000672" />)
     }
   }
 
@@ -132,13 +132,15 @@ export default class MyWalletDetailsScreen extends React.Component {
             <Text style={{"fontSize": 14, "textAlign": "center", "color": "black"}}>Beta release {global.version}</Text>
           </View>
           <View style={styles.balanceContainer}>
-          <Text style={styles.balanceText}>{`${wallet.balance/10000} MBC`}</Text>
-            <Text style={styles.balanceSubText}>{wallet.title}</Text>
-            <View style={[styles.status, isConnected ? styles.statusOnline : styles.statusOffline]}></View>
+            <Text style={styles.balanceText}>{`${wallet.balance/10000} MBC`}</Text>
+            <Text>
+              <Icon name="controller-record" size={14} color={isConnected ? '#00d47d' : '#ff4133'} />
+              <Text style={styles.balanceSubText}> {wallet.title}</Text>
+            </Text>
           </View>
           <ScrollView>
           {wallet.transactions == null ? <View style={styles.noHistoryContainer}><ActivityIndicator size="large" color="#000672" /></View> : null}
-            {wallet.transactions != null && Object.keys(wallet.transactions).length == 0 ? <View style={styles.noHistoryContainer}><Text style={styles.labelText}>Wallet history is empty</Text></View> : null}
+            {wallet.transactions != null && Object.keys(wallet.transactions).length == 0 && wallet.mempool.length == 0 ? <View style={styles.noHistoryContainer}><Text style={styles.labelText}>Wallet history is empty</Text></View> : null}
             {wallet.mempool.length > 0 ? <Text style={styles.addressHeader}>Unconfirmed transactions</Text> : null}
             {
               wallet.mempool.map((tx) => (
@@ -211,7 +213,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   balanceContainer: {
-    paddingTop: 36,
+    paddingTop: 26,
     paddingBottom: 20,
     paddingRight: 16,
     paddingLeft: 16,
@@ -254,7 +256,7 @@ const styles = StyleSheet.create({
   balanceSubText: {
     fontSize: 16,
     color: '#ffffff',
-    opacity: 0.75,
+    opacity: 0.75
   },
   txContainer: {
     flexDirection: 'row',
@@ -321,7 +323,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
     width: 10,
     height: 10,
-    borderRadius: 10/2
+    borderRadius: 10/2,
+    backgroundColor: '#ff4133'
   },
   statusOnline: {
     backgroundColor: '#00d47d'

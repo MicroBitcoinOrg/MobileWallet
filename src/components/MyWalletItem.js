@@ -34,10 +34,10 @@ export default class MyWalletItem extends React.Component {
 
       try {
 
-        this.props.ecl.blockchainAddress_getBalance(address).then((res) => {
+        global.ecl.blockchainAddress_getBalance(address).then((res) => {
 
           balance += res.confirmed
-          this.setState({balance: balance})
+          this.props.wallet.balance = balance;
 
         })
 
@@ -53,10 +53,10 @@ export default class MyWalletItem extends React.Component {
 
       try {
 
-        this.props.ecl.blockchainAddress_getBalance(address).then((res) => {
+        global.ecl.blockchainAddress_getBalance(address).then((res) => {
 
           balance += res.confirmed
-          this.setState({balance: balance})
+          this.props.wallet.balance = balance;
 
         })
 
@@ -68,9 +68,7 @@ export default class MyWalletItem extends React.Component {
 
     }
 
-    this.setState({balance: balance})
-    // await ecl.close()
-
+    this.props.wallet.balance = balance;
   }
 
   render() {
@@ -83,7 +81,7 @@ export default class MyWalletItem extends React.Component {
         <Image source={Logo} style={styles.listItemLogo} />
         <View style={styles.listItemTextContainer}>
           <Text style={styles.listItemTextName}>{`${wallet.title}`}</Text>
-          <Text style={styles.listItemTextBalance}>{`${balance/10000} MBC`}</Text>
+          <Text style={styles.listItemTextBalance}>{`${wallet.balance/10000} MBC`}</Text>
         </View>
         {/*<Icon name='dots-three-vertical' size={20} color='#000672' style={styles.listItemIcon} />*/}
       </View>
