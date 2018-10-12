@@ -70,7 +70,7 @@ export default class openPasswordWalletScreen extends React.Component {
             onChangeText={(key) => this.setState({key: key})}
             value={this.state.key}
             maxLength={64}
-            placeholder='Enter WIF key...'
+            placeholder='Enter WIF key'
             underlineColorAndroid='transparent'
             style={styles.inputPassword}
           />

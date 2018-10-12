@@ -101,7 +101,7 @@ android {
         applicationId "com.microbitcoin"
         minSdkVersion 16
         targetSdkVersion 27
-        versionCode 4
+        versionCode 5
         versionName "1.2"
         ndk {
             abiFilters "armeabi-v7a", "x86"

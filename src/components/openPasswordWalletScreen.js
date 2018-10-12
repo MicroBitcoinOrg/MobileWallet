@@ -79,7 +79,7 @@ export default class openPasswordWalletScreen extends React.Component {
             onChangeText={(password) => this.setState({password: password})}
             value={this.state.password}
             maxLength={32}
-            placeholder='Enter password...'
+            placeholder='Enter password'
             underlineColorAndroid='transparent'
             style={styles.inputPassword}
           />

@@ -85,7 +85,7 @@ export default class CreateWalletScreen extends React.Component {
 
             <View style={styles.inputContainer}>
               <TextInput style={styles.inputPhrase}
-                placeholder = {"Enter your wallet name..."}
+                placeholder = {"Enter your wallet name"}
                 onChangeText={(text) => this.setState({walletName: text})}
                 editable = {true}
                 underlineColorAndroid='transparent'

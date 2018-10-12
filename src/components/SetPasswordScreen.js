@@ -116,7 +116,7 @@ export default class SetPasswordScreen extends React.Component {
             onChangeText={(password) => this.setState({password: password})}
             value={this.state.password}
             maxLength={32}
-            placeholder='Enter password...'
+            placeholder='Enter password'
             underlineColorAndroid='transparent'
             style={styles.inputPassword}
           />
@@ -127,7 +127,7 @@ export default class SetPasswordScreen extends React.Component {
             secureTextEntry={true}
             maxLength={32}
             onChangeText={(password) => this.setState({confirmPassword: password})}
-            placeholder='Confirm password...'
+            placeholder='Confirm password'
             underlineColorAndroid='transparent'
             style={styles.inputPassword}
           />
