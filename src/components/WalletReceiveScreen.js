@@ -90,13 +90,17 @@ export default class ReceiveScreen extends React.Component {
         <View style={styles.innerContainer}>
           <View style={styles.qrContainer}>
             <Text style={styles.txtTitle}>Receive</Text>
-            <QRCode
-              value={"microbitcoin:" + wallet.addresses.currentExternal}
-              size={240}
-              bgColor='#000672'
-              fgColor='white'
-            />
-            <Text selectable style={styles.txtAddress}>{wallet.addresses.currentExternal}</Text>
+            <TouchableOpacity onPress={() => Clipboard.setString(wallet.addresses.currentExternal)}>
+              <QRCode
+                value={"microbitcoin:" + wallet.addresses.currentExternal}
+                size={240}
+                bgColor='#000672'
+                fgColor='white'
+              />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => Clipboard.setString(wallet.addresses.currentExternal)}>
+              <Text selectable style={styles.txtAddress}>{wallet.addresses.currentExternal}</Text>
+            </TouchableOpacity>
           </View>
         </View>
         <View style={styles.spacing}>

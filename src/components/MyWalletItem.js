@@ -34,7 +34,7 @@ export default class MyWalletItem extends React.Component {
 
       try {
 
-        global.ecl.blockchainAddress_getBalance(address).then((res) => {
+        global.ecl.blockchainAddress_balance(address).then((res) => {
 
           balance += res.confirmed
           this.props.wallet.balance = balance;
@@ -53,7 +53,7 @@ export default class MyWalletItem extends React.Component {
 
       try {
 
-        global.ecl.blockchainAddress_getBalance(address).then((res) => {
+        global.ecl.blockchainAddress_balance(address).then((res) => {
 
           balance += res.confirmed
           this.props.wallet.balance = balance;

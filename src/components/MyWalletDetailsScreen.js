@@ -11,7 +11,8 @@ import {
   Alert,
   TouchableOpacity,
   Linking,
-  View
+  View,
+  AppState
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Entypo';
 import NavbarButton from './NavbarButton';
@@ -32,7 +33,8 @@ export default class MyWalletDetailsScreen extends React.Component {
       loading: false,
       isConnected: false,
       wallet: this.props.navigation.getParam('wallet', null),
-      password: this.props.navigation.getParam('password', null)
+      password: this.props.navigation.getParam('password', null),
+      appState: AppState.currentState
 
     }
     
@@ -58,6 +60,7 @@ export default class MyWalletDetailsScreen extends React.Component {
           handleFirstConnectivityChange
 
         )
+        AppState.addEventListener('change', this.handleAppStateChange);
       }
     )
 
@@ -66,7 +69,6 @@ export default class MyWalletDetailsScreen extends React.Component {
       payload => {
         this.isCancelled = true
         clearInterval(this.interval);
-        this.interval = null;
 
         NetInfo.isConnected.removeEventListener(
 
@@ -74,12 +76,14 @@ export default class MyWalletDetailsScreen extends React.Component {
           handleFirstConnectivityChange
 
         );
+        AppState.removeEventListener('change', this.handleAppStateChange);
       }
     )
+
   }
 
   updateWallet() {
-    this.setState({wallet: this.walletUtils.wallet});
+    if(!this.isCancelled) this.setState({wallet: this.walletUtils.wallet});
   }
 
   static navigationOptions = ({ navigation }) => {
@@ -109,6 +113,15 @@ export default class MyWalletDetailsScreen extends React.Component {
       }
 
     });
+  }
+
+  handleAppStateChange = (nextAppState) => {
+    if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
+      this.walletUtils = new Wallet(this.state.wallet, this.props.navigation.getParam('password', null), global.ecl);
+      this.walletUtils.subscribeToAddresses();
+      this.walletUtils.checkHistory();
+    }
+    if (!this.isCancelled) this.setState({appState: nextAppState});
   }
 
   handleFirstConnectivityChange = (connectionInfo) => {
@@ -170,7 +183,7 @@ export default class MyWalletDetailsScreen extends React.Component {
               <NavbarButton label='Receive' icon='login' />
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => this.props.navigation.push('MyWallets')} style={styles.navbarIconButton}>
+              onPress={() => this.props.navigation.navigate('MyWallets')} style={styles.navbarIconButton}>
               <NavbarButton label='Wallets' icon='wallet' />
             </TouchableOpacity>
             <TouchableOpacity

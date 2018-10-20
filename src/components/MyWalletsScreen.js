@@ -23,6 +23,15 @@ export default class MyWalletsScreen extends React.Component {
       wallets: []
     }
 
+  }
+
+  static navigationOptions = {
+    headerLeft: null,
+    gesturesEnabled: false,
+  }
+
+  componentDidMount() { 
+
     const willFocusSubscription = this.props.navigation.addListener(
       'willFocus',
       payload => {
@@ -47,14 +56,9 @@ export default class MyWalletsScreen extends React.Component {
     )
   }
 
-  static navigationOptions = {
-    headerLeft: null,
-    gesturesEnabled: false,
+  componentWillUnmount() {
+
   }
-
-  // componentDidMount() { store.delete('wallets') }
-
-  componentWillUnmount() { }
 
   openWallet = (wallet) => {
 
@@ -66,17 +70,15 @@ export default class MyWalletsScreen extends React.Component {
   handleBackPress = () => true
 
   render() {
-    const { navigation } = this.props
-
 
     return(
       <View style={styles.container}>
 
         <View style={styles.labelContainer}>
           <View style={styles.label}>
-            <Text style={styles.labelText}>MY <Text style={{fontWeight: 'bold'}}>{'wallets'.toUpperCase()}</Text></Text>
+            <Text style={styles.labelText}><Text style={{fontWeight: 'bold'}}>{'my wallets'.toUpperCase()}</Text></Text>
             <TouchableOpacity
-              onPress={() => navigation.push("RestoreWallet")}
+              onPress={() => this.props.navigation.push("RestoreWallet")}
               style={styles.labelAddButton}>
               <Icon name="circle-with-plus" size={24} color="white" />
             </TouchableOpacity>

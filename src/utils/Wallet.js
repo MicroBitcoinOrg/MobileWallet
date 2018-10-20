@@ -21,10 +21,6 @@ export class Wallet {
 			this.checkMempool();
 		}
 
-		for(var address in this.wallet.addresses.external) {
-			console.log('ADDRESS - ', address);
-			console.log('PRIV - ',decryptData(this.wallet.addresses.external[address].privateKey, this.password));
-		}
 	}
 
 	onlyUnique(value, index, self) { 
@@ -73,7 +69,7 @@ export class Wallet {
 			var balance = null;
 
 			try {
-				balance = await this.ecl.blockchainAddress_getBalance(address);
+				balance = await this.ecl.blockchainAddress_balance(address);
 				console.log("Balance: "+JSON.stringify(balance));
 			} catch (e) {
 				console.log(e);
@@ -81,7 +77,7 @@ export class Wallet {
 
 			if (balance != null && balance.confirmed > 0) {
 				try {
-					let utxo = await this.ecl.blockchainAddress_getUtxoAmount(address, balance.confirmed);
+					let utxo = await this.ecl.blockchainAddress_utxo(address, balance.confirmed);
 					console.log("utxo: "+JSON.stringify(utxo));
 					usedAddresses.push(address);
 					for (var k = 0; k < utxo.length; k++) {
@@ -100,7 +96,7 @@ export class Wallet {
 			var balance = null;
 
 			try {
-				balance = await this.ecl.blockchainAddress_getBalance(address);
+				balance = await this.ecl.blockchainAddress_balance(address);
 				console.log("Balance: "+JSON.stringify(balance));
 			} catch (e) {
 				console.log(e);
@@ -108,7 +104,7 @@ export class Wallet {
 
 			if (balance != null && balance.confirmed > 0) {
 				try {
-					let utxo = await this.ecl.blockchainAddress_getUtxoAmount(address, balance.confirmed);
+					let utxo = await this.ecl.blockchainAddress_utxo(address, balance.confirmed);
 					console.log("utxo: "+JSON.stringify(utxo));
 					usedAddresses.push(address);
 					for (var k = 0; k < utxo.length; k++) {
@@ -130,7 +126,7 @@ export class Wallet {
 		outputs.push({"address":recieveAddress, "amount": amount});
 
 		if (outputsAmount-amount-fee != 0 && this.wallet.addresses.currentInternal != null) {
-			outputs.push({"address": this.wallet.addresses.currentInternal, "amount": (outputsAmount-amount-fee).toFixed(3).toString()});
+			outputs.push({"address": this.wallet.addresses.currentInternal, "amount": (outputsAmount-amount-fee).toFixed(4).toString()});
 		}
 
 		let tx = this.createTransaction(inputs, outputs).serialize()
@@ -151,7 +147,7 @@ export class Wallet {
 		}
 
 		try {
-			let broadcast = await this.ecl.blockchainTransaction_broadcast(tx)
+			let broadcast = await this.ecl.blockchainTransaction_send(tx)
 			let address = await generateNextAddress(this.wallet, this.password, 1);
 			this.wallet.addresses.internal[address.address] = address.data;
           	this.wallet.addresses.currentInternal = address.address;
@@ -176,7 +172,7 @@ export class Wallet {
 	async addTransaction(transactionHash) {
 		if(transactionHash == null) return null;
 
-		let transactionVerbose = await this.ecl.blockchainTransaction_getVerbose(transactionHash);
+		let transactionVerbose = await this.ecl.blockchainTransaction_verbose(transactionHash);
 		var transaction = {};
 		transaction.hash = transactionHash;
 		transaction.amount = 0;
@@ -185,7 +181,7 @@ export class Wallet {
 		for (var k = 0; k < transactionVerbose.vin.length; k++) {
 			if (transactionVerbose.vin[k].txid != null) {
 				let kIndex = k
-				promises.push(this.ecl.blockchainTransaction_getVerbose(transactionVerbose.vin[k].txid).then((verbose) => {
+				promises.push(this.ecl.blockchainTransaction_verbose(transactionVerbose.vin[k].txid).then((verbose) => {
 				  if (Object.keys(this.wallet.addresses.internal)
 				      	 .includes(verbose.vout[transactionVerbose.vin[kIndex].vout]
 				      	 .scriptPubKey.addresses[0]) || Object.keys(this.wallet.addresses.external)
@@ -259,39 +255,40 @@ export class Wallet {
 
 		if(checkAddress == null) {
 			for (var address in this.wallet.addresses.internal) {
-				promises.push(this.ecl.blockchainAddress_getHistory(address).then((history) => {
-					allHistory.push.apply(allHistory, history);
+				promises.push(this.ecl.blockchainAddress_history(address).then((history) => {
+					allHistory.push.apply(allHistory, history.history);
+					console.log(history)
 				}))
 			}
 
 			for (var address in this.wallet.addresses.external) {
-				promises.push(this.ecl.blockchainAddress_getHistory(address).then((history) => {
-					allHistory.push.apply(allHistory, history);
+				promises.push(this.ecl.blockchainAddress_history(address).then((history) => {
+					allHistory.push.apply(allHistory, history.history);
 				}))
 			}
 
 			await Promise.all(promises);
 			allHistory = allHistory.filter( this.onlyUnique );
 		} else {
-			await this.ecl.blockchainAddress_getHistory(checkAddress).then((history) => {
-				allHistory.push.apply(allHistory, history);
+			await this.ecl.blockchainAddress_history(checkAddress).then((history) => {
+				allHistory.push.apply(allHistory, history.history);
 			})
 		}
 		
 		promises = [];
 		
 		for (var i = 0; i < allHistory.length; i++) {
-			if(!this.hashes.includes(allHistory[i].tx_hash)) {
-				this.hashes.push(allHistory[i].tx_hash);
-				promises.push(this.addTransaction(allHistory[i].tx_hash));
+			if(!this.hashes.includes(allHistory[i].data.txid)) {
+				this.hashes.push(allHistory[i].data.txid);
+				promises.push(this.addTransaction(allHistory[i].data.txid));
 				updatedTransactions = true;
 			}
 		}
 
 		await Promise.all(promises);
-		
+		this.updateBalance();
 		if (updatedTransactions) {
-			this.updateBalance();
+			
 			saveWallet(this.wallet);
 		}
 	}
@@ -302,7 +299,7 @@ export class Wallet {
 
 		while (this.wallet.mempool.length != 0) {
 			for (var i = 0; i < this.wallet.mempool.length; i++) {
-				let tx = await this.ecl.blockchainTransaction_getVerbose(this.wallet.mempool[i].hash);
+				let tx = await this.ecl.blockchainTransaction_verbose(this.wallet.mempool[i].hash);
 
 				if (tx.time !== undefined) {
 					this.wallet.mempool[i].date = new Date(tx.time * 1000)
@@ -325,7 +322,7 @@ export class Wallet {
 	}
 
 	async estimateFee() {
-		return (await this.ecl.blockchainEstimateSmartfee()).feerate.toString()
+		return ((await this.ecl.blockchainEstimateSmartfee()).feerate/10000).toString()
 	}
 
 	async updateBalance() {
@@ -334,16 +331,28 @@ export class Wallet {
 
 	    for (var address in this.wallet.addresses.external) {
 	    	try{
-	        	balance += (await this.ecl.blockchainAddress_getBalance(address)).confirmed
+	        	balance += (await this.ecl.blockchainAddress_balance(address)).confirmed
 	    	} catch (e) { }
 	    }
 
 	    for (var address in this.wallet.addresses.internal) {
 	      try{
-	        balance += (await this.ecl.blockchainAddress_getBalance(address)).confirmed
+	        balance += (await this.ecl.blockchainAddress_balance(address)).confirmed
 	      } catch (e) { }
 
 	    }
+
+	    // for (var timestamp in this.wallet.transactions) {
+	    // 	if (this.wallet.transactions[timestamp].type == "Sent") {
+	    // 		balance -= Number(this.wallet.transactions[timestamp].amount);
+	    // 		console.log(balance + " [" + this.wallet.transactions[timestamp].amount + "]")
+	    // 	} else {
+	    // 		balance += Number(this.wallet.transactions[timestamp].amount);
+	    // 		console.log(balance + " [" + this.wallet.transactions[timestamp].amount + "]")
+	    // 	}
+	    // }
+
+	    // alert(balance)
 
 	    this.wallet.balance = balance;
 	    saveWallet(this.wallet);

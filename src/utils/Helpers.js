@@ -126,7 +126,7 @@ export const generateAddress = async(range, mnemonic, password, chain, seed = nu
     if (Array.isArray(range)) {
         var returnObj = [];
 
-        for (var i = range[0]; i < range[1]; i++) {
+        for (let i = range[0]; i < range[1]; i++) {
             var address = {};
             var childKeys = hdKey.derive("m/44'/0'/0'/" + chain + "/" + i);
 
@@ -141,7 +141,7 @@ export const generateAddress = async(range, mnemonic, password, chain, seed = nu
         var address = {};
         var childKeys = hdKey.derive("m/44'/0'/0'/" + chain + "/" + range);
 
-        address['privateKey'] = encryptData(fromPrivateKeyToWIF(getPrivateKey(childKeys).toString('hex')), password);;
+        address['privateKey'] = encryptData(fromPrivateKeyToWIF(getPrivateKey(childKeys).toString('hex')), password);
         address['used'] = false;
         returnObj = {"address": fromPublicKeyToAddress(getPublicKey(childKeys)), "data": address};
         
@@ -151,21 +151,16 @@ export const generateAddress = async(range, mnemonic, password, chain, seed = nu
 
 export async function generateNextAddress(wallet, password, chain) {
     var k = 0;
-    var address = null;
     var addresses = (chain == 0 ? Object.keys(wallet.addresses.external) : Object.keys(wallet.addresses.internal));
-    console.log(addresses)
     while (true) {
-        address = await generateAddress(k, wallet.mnemonicPhrase, password, chain);
+        var address = await generateAddress(k, wallet['mnemonicPhrase'], password, chain);
 
         if (!(addresses.includes(address.address))) {
-            break;
+            return address;
         }
 
         k++;
-
     }
-    
-    return address;
 }
 
 export function generateMnemonic() {
@@ -213,7 +208,7 @@ export async function findAddresses(wallet, password, ecl, chain) {
             checkMore = true;
         }
 
-        for (var i = 0; i < addresses.length; i++) {
+        for (let i = 0; i < addresses.length; i++) {
             if(chain == 0) {
                 wallet['addresses']['currentExternal'] = addresses[i].address;
                 wallet['addresses']['external'][addresses[i].address] = addresses[i].data;

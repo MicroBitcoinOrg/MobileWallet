@@ -52,6 +52,10 @@ export default class App extends React.Component {
     super(props)
     this.pingInterval = null;
 
+    this.state = {
+      appState: AppState.currentState
+    }
+
     global.port = 7403;
     global.ip = "13.57.248.201";
     global.ecl = new ElectrumCli(global.port, global.ip, 'tcp');
@@ -70,9 +74,17 @@ export default class App extends React.Component {
     }, 4000);
   }
 
+  handleAppStateChange = (nextAppState) => {
+    if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
+      global.ecl = new ElectrumCli(global.port, global.ip, 'tcp');
+      global.ecl.connect();
+    }
+    this.setState({appState: nextAppState});
+  }
+
 
   componentDidMount() {
-    // AppState.addEventListener('change', this.handleAppStateChange);
+    AppState.addEventListener('change', this.handleAppStateChange);
     this.ping();
     store.get("wallets").then((wallets) => {
       if (wallets != null) {

@@ -88,7 +88,7 @@ export default class SendScreen extends React.Component {
 
     setTimeout(() => {
 
-      if(typeof tx  === 'string') {
+      if(tx.txhash !== undefined) {
 
         Alert.alert('Send Transaction', 'Success!')
 
