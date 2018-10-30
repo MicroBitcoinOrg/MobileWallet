@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "devDependencies": {
+    "babel-preset-react-native": "^4.0.1",
     "babel-preset-react-native-stage-0": "^1.0.1",
     "jest": "^23.5.0",
     "jest-react-native": "^18.0.0",
@@ -24,6 +25,7 @@
     "@tradle/react-native-http": "^2.0.1",
     "aes256": "1.0.4",
     "assert": "^1.4.1",
+    "async-parallel": "^1.2.3",
     "bip39": "^2.5.0",
     "browserify-zlib": "^0.1.4",
     "bs58check": "2.1.2",

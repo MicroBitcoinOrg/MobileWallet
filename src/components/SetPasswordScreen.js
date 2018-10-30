@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import Loader from './Loader';
 import store from 'react-native-simple-store';
-import {generateWallet, findAddresses} from '../utils/Helpers';
+import {generateWallet, findAddresses, saveWallet} from '../utils/Helpers';
+import WalletUtils from '../utils/WalletUtils';
 
 export default class SetPasswordScreen extends React.Component {
 
@@ -82,14 +83,24 @@ export default class SetPasswordScreen extends React.Component {
         if (this.state.type == "import") {
           var promises = [];
           console.log("importing...");
-          promises.push(findAddresses(wallet, this.state.password, global.ecl, 0));
-          promises.push(findAddresses(wallet, this.state.password, global.ecl, 1));
-          await Promise.all(promises);
+          await findAddresses(wallet, this.state.password, global.ecl, 1);
+          await findAddresses(wallet, this.state.password, global.ecl, 0);
+          var wallets = await store.get('wallets');
+
+          for (var i = 0; i < wallets.length; i++) {
+            if(wallets[i].id == wallet.id) {
+              var walletUtils = new WalletUtils(wallets[i], this.state.password, global.ecl);
+              await walletUtils.checkHistory();
+            }
+          }
+          
+          walletUtils = null;
         }
 
-        this.setState({"loading": false})
-        this.props.navigation.replace('MyWallets')
-        
+        setTimeout(() => {
+          this.setState({"loading": false});
+          this.props.navigation.replace('MyWallets');
+        }, 100);
       }
 
     }
@@ -111,10 +122,9 @@ export default class SetPasswordScreen extends React.Component {
 
         <View style={styles.passwordContainer}>
           <TextInput
-            autoFocus = {true}
+            autoFocus={true}
             secureTextEntry={true}
             onChangeText={(password) => this.setState({password: password})}
-            value={this.state.password}
             maxLength={32}
             placeholder='Enter password'
             underlineColorAndroid='transparent'
@@ -132,14 +142,14 @@ export default class SetPasswordScreen extends React.Component {
             style={styles.inputPassword}
           />
         </View>
-
+        
         <View style={styles.spacing}>
         </View>
 
         <View>
           <Text style={styles.txtInfo}>Keep your password secure.</Text>
         </View>
-
+        
         <View style={styles.btnConfirmContainer}>
           <TouchableOpacity
             style={styles.btnConfirm}
@@ -175,26 +185,27 @@ const styles = StyleSheet.create({
     color: '#505659',
   },
   passwordContainer: {
-    flexDirection: 'row',
     backgroundColor: '#ffffff',
-    padding: 10,
+    marginBottom: 24,
     borderRadius: 16,
+    minWidth: '100%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.33,
     shadowRadius: 3,
     elevation: 3,
     zIndex: 10,
-    marginBottom: 15
   },
   inputPassword: {
-    flex: 1,
-    minWidth: 256,
+    minHeight: 50,
+    padding: 5,
+    minWidth: '100%',
     textAlign: 'center',
+    alignSelf: 'center',
     fontSize: 18,
-    fontWeight: 'bold',
     lineHeight: 32,
-    color: '#000672'
+    fontWeight: 'bold',
+    color: '#000672',
   },
   spacing: {
     flex: 1,

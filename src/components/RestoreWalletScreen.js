@@ -5,18 +5,29 @@ import {
   Image,
   StyleSheet,
   Text,
-  View
+  View,
+  Dimensions,
+  PixelRatio
 } from 'react-native'
 
 import Logo from '../assets/icon.png'
 
-/**
- * RestoreWalletScreen
- * 
- * Can be used for both:
- * - first launch of app, or
- * - add wallet (from MyWallets)
- */
+const {
+  width: SCREEN_WIDTH,
+  height: SCREEN_HEIGHT,
+} = Dimensions.get('window');
+
+const scale = SCREEN_WIDTH / 375;
+
+export function normalize(size) {
+  const newSize = size * scale 
+  if (Platform.OS === 'ios') {
+    return Math.round(PixelRatio.roundToNearestPixel(newSize))
+  } else {
+    return Math.round(PixelRatio.roundToNearestPixel(newSize)) - 2
+  }
+}
+
 export default class RestoreWalletScreen extends React.Component {
 
   static navigationOptions = () => {
@@ -81,14 +92,14 @@ const styles = StyleSheet.create({
   },
   imgLogo: {
     resizeMode: 'contain',
-    height: 180
+    height: normalize(160)
   },
   txtInfoContainer: {
     flex: 1
   },
   txtInfo: {
     textAlign: 'center',
-    fontSize: 22,
+    fontSize: normalize(22),
     fontWeight: 'bold',
     color: '#505659'
   },

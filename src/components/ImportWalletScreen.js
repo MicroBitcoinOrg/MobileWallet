@@ -83,27 +83,22 @@ export default class ImportWalletScreen extends React.Component {
               <Text style={styles.txtInfo}>Please enter your mnemonic phrase:</Text>
             </View>
 
-            <View style={styles.inputContainer}>
-              <TextInput
+              <TextInput style={[styles.inputContainer, styles.inputPhrase]}
+                placeholder={'Enter phrase here'}
                 onChangeText={(words) => this.setState({words})}
                 value={this.state.words}
                 multiline={true}
                 blurOnSubmit={true}
-                placeholder='Enter phrase here'
+                paddingBottom={10}
                 underlineColorAndroid='transparent'
-                style={styles.inputPhrase}
               />
-            </View>
 
-            <View style={styles.inputContainer}>
-              <TextInput style={styles.inputPhrase}
+              <TextInput style={[styles.inputContainer, styles.inputPhrase]}
                 placeholder = {"Enter your wallet name"}
                 onChangeText={(text) => this.setState({walletName: text})}
-                editable = {true}
                 underlineColorAndroid='transparent'
                 maxLength = {35}
               />
-            </View>
 
             <View style={styles.spacing}></View>
 
@@ -132,8 +127,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: 'column',
+    justifyContent: 'center',
     alignItems: 'center',
-    justifyContent: 'space-between',
     backgroundColor: '#f2f2f2',
   },
   innerContainer: {
@@ -164,11 +159,8 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   inputContainer: {
-    flexDirection: 'row',
     backgroundColor: '#ffffff',
     marginBottom: 24,
-    paddingTop: 10,
-    paddingBottom: 10,
     borderRadius: 16,
     minWidth: '100%',
     shadowColor: '#000',
@@ -193,13 +185,14 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   inputPhrase: {
-    paddingRight: 10,
-    paddingLeft: 10,
+    minHeight: 50,
+    padding: 5,
     minWidth: '100%',
     textAlign: 'center',
+    alignSelf: 'center',
     fontSize: 18,
-    fontWeight: 'bold',
     lineHeight: 32,
+    fontWeight: 'bold',
     color: '#000672',
   },
   spacing: {

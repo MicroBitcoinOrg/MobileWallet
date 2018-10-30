@@ -1,7 +1,8 @@
 import {generateNextAddress, saveWallet, decryptData, findAddresses} from './Helpers';
+
 var coinjs = require('coinjs');
 
-export class Wallet {
+export class WalletUtils {
   
 	constructor(wallet, password, ecl) {
 		this.wallet = wallet;
@@ -20,6 +21,7 @@ export class Wallet {
 		if (this.wallet.mempool.length > 0 && !this.mempoolChecking) {
 			this.checkMempool();
 		}
+
 
 	}
 
@@ -254,16 +256,18 @@ export class Wallet {
 		var updatedTransactions = false;
 
 		if(checkAddress == null) {
-			for (var address in this.wallet.addresses.internal) {
+			for (let address in this.wallet.addresses.internal) {
 				promises.push(this.ecl.blockchainAddress_history(address).then((history) => {
-					allHistory.push.apply(allHistory, history.history);
+					allHistory.push.apply(allHistory, history);
 					console.log(history)
 				}))
 			}
 
-			for (var address in this.wallet.addresses.external) {
+			for (let address in this.wallet.addresses.external) {
 				promises.push(this.ecl.blockchainAddress_history(address).then((history) => {
-					allHistory.push.apply(allHistory, history.history);
+					allHistory.push.apply(allHistory, history);
+					console.log("Load history of " + address);
+					console.log(history)
 				}))
 			}
 
@@ -271,25 +275,24 @@ export class Wallet {
 			allHistory = allHistory.filter( this.onlyUnique );
 		} else {
 			await this.ecl.blockchainAddress_history(checkAddress).then((history) => {
-				allHistory.push.apply(allHistory, history.history);
+				allHistory.push.apply(allHistory, history);
 			})
 		}
 		
 		promises = [];
 		
 		for (var i = 0; i < allHistory.length; i++) {
-			if(!this.hashes.includes(allHistory[i].data.txid)) {
-				this.hashes.push(allHistory[i].data.txid);
-				promises.push(this.addTransaction(allHistory[i].data.txid));
+			if(!this.hashes.includes(allHistory[i].tx_hash)) {
+				this.hashes.push(allHistory[i].tx_hash);
+				promises.push(this.addTransaction(allHistory[i].tx_hash));
 				updatedTransactions = true;
 			}
 		}
 
 		await Promise.all(promises);
-		this.updateBalance();
+		
 		if (updatedTransactions) {
-			
-			saveWallet(this.wallet);
+			await this.updateBalance();
 		}
 	}
 
@@ -329,35 +332,35 @@ export class Wallet {
 	    var promises = [];
 	    var balance = 0;
 
-	    for (var address in this.wallet.addresses.external) {
-	    	try{
-	        	balance += (await this.ecl.blockchainAddress_balance(address)).confirmed
-	    	} catch (e) { }
-	    }
-
-	    for (var address in this.wallet.addresses.internal) {
-	      try{
-	        balance += (await this.ecl.blockchainAddress_balance(address)).confirmed
-	      } catch (e) { }
-
-	    }
-
-	    // for (var timestamp in this.wallet.transactions) {
-	    // 	if (this.wallet.transactions[timestamp].type == "Sent") {
-	    // 		balance -= Number(this.wallet.transactions[timestamp].amount);
-	    // 		console.log(balance + " [" + this.wallet.transactions[timestamp].amount + "]")
-	    // 	} else {
-	    // 		balance += Number(this.wallet.transactions[timestamp].amount);
-	    // 		console.log(balance + " [" + this.wallet.transactions[timestamp].amount + "]")
-	    // 	}
+	    // for (var address in this.wallet.addresses.external) {
+	    // 	try{
+	    //     	balance += (await this.ecl.blockchainAddress_balance(address)).confirmed
+	    // 	} catch (e) { }
 	    // }
+
+	    // for (var address in this.wallet.addresses.internal) {
+	    //   try{
+	    //     balance += (await this.ecl.blockchainAddress_balance(address)).confirmed
+	    //   } catch (e) { }
+
+	    // }
+
+	    for (var timestamp in this.wallet.transactions) {
+	    	if (this.wallet.transactions[timestamp].type == "Sent") {
+	    		balance -= Number(this.wallet.transactions[timestamp].amount);
+	    		console.log(balance + " [" + this.wallet.transactions[timestamp].amount + "]")
+	    	} else {
+	    		balance += Number(this.wallet.transactions[timestamp].amount);
+	    		console.log(balance + " [" + this.wallet.transactions[timestamp].amount + "]")
+	    	}
+	    }
 
 	    // alert(balance)
 
-	    this.wallet.balance = balance;
-	    saveWallet(this.wallet);
+	    this.wallet.balance = (balance*10000).toFixed(4);
+	    await saveWallet(this.wallet);
   	}
 
 }
 
-module.exports = Wallet
+module.exports = WalletUtils

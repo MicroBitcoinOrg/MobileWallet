@@ -59,7 +59,7 @@ export default class App extends React.Component {
     global.port = 7403;
     global.ip = "13.57.248.201";
     global.ecl = new ElectrumCli(global.port, global.ip, 'tcp');
-    global.version = "1.2";
+    global.version = "1.0";
 
     global.ecl.connect().then(() => this.ping)
   }

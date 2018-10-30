@@ -17,14 +17,14 @@ import {
 import Icon from 'react-native-vector-icons/Entypo';
 import NavbarButton from './NavbarButton';
 import Loader from './Loader';
-import Wallet from '../utils/Wallet';
+import WalletUtils from '../utils/WalletUtils';
 import store from 'react-native-simple-store';
 
 export default class MyWalletDetailsScreen extends React.Component {
 
   constructor(props) {
     super(props)
-    this.walletUtils = new Wallet(this.props.navigation.getParam('wallet', null), this.props.navigation.getParam('password', null), global.ecl);
+    this.walletUtils = new WalletUtils(this.props.navigation.getParam('wallet', null), this.props.navigation.getParam('password', null), global.ecl);
     this.walletUtils.subscribeToAddresses();
     this.walletUtils.checkHistory();
     this.isCancelled = false;
@@ -117,7 +117,7 @@ export default class MyWalletDetailsScreen extends React.Component {
 
   handleAppStateChange = (nextAppState) => {
     if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
-      this.walletUtils = new Wallet(this.state.wallet, this.props.navigation.getParam('password', null), global.ecl);
+      this.walletUtils = new WalletUtils(this.state.wallet, this.props.navigation.getParam('password', null), global.ecl);
       this.walletUtils.subscribeToAddresses();
       this.walletUtils.checkHistory();
     }
@@ -141,9 +141,6 @@ export default class MyWalletDetailsScreen extends React.Component {
           {loading && 
             <Loader loading={true} />
           }
-          <View style={styles.versionContainer}>
-            <Text style={{"fontSize": 14, "textAlign": "center", "color": "black"}}>Beta release {global.version}</Text>
-          </View>
           <View style={styles.balanceContainer}>
             <Text style={styles.balanceText}>{`${wallet.balance/10000} MBC`}</Text>
             <Text>

@@ -74,10 +74,9 @@ export default class openPasswordWalletScreen extends React.Component {
 
         <View style={styles.passwordContainer}>
           <TextInput
-            autoFocus = {true}
+            autoFocus={true}
             secureTextEntry={true}
             onChangeText={(password) => this.setState({password: password})}
-            value={this.state.password}
             maxLength={32}
             placeholder='Enter password'
             underlineColorAndroid='transparent'
@@ -123,26 +122,27 @@ const styles = StyleSheet.create({
     color: '#505659',
   },
   passwordContainer: {
-    flexDirection: 'row',
     backgroundColor: '#ffffff',
-    padding: 10,
+    marginBottom: 24,
     borderRadius: 16,
+    minWidth: '100%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.33,
     shadowRadius: 3,
     elevation: 3,
     zIndex: 10,
-    marginBottom: 15
   },
   inputPassword: {
-    flex: 1,
-    minWidth: 256,
+    minHeight: 50,
+    padding: 5,
+    minWidth: '100%',
     textAlign: 'center',
+    alignSelf: 'center',
     fontSize: 18,
-    fontWeight: 'bold',
     lineHeight: 32,
-    color: '#000672'
+    fontWeight: 'bold',
+    color: '#000672',
   },
   spacing: {
     flex: 1,

@@ -8,12 +8,14 @@ import {
   View,
   Keyboard,
   Dimensions,
+  Clipboard,
   Alert,
   Picker
 } from 'react-native'
 import Icon from 'react-native-vector-icons/Entypo'
 import NavbarButton from './NavbarButton'
 import store from 'react-native-simple-store'
+import {decryptData} from '../utils/Helpers'
 
 export default class WalletSettingsScreen extends React.Component {
 
@@ -37,7 +39,12 @@ export default class WalletSettingsScreen extends React.Component {
   }
 
   componentWillUnmount() {
-      this.isCancelled = true
+    this.isCancelled = true
+  }
+
+  copyMnemonic = () => {
+    Clipboard.setString(decryptData(this.state.wallet.mnemonicPhrase, this.state.password))
+    Alert.alert('Copy recovery phrase', 'The recovery phrase has been successfully copied!')
   }
 
   clearTransactions = () => {
@@ -125,6 +132,9 @@ export default class WalletSettingsScreen extends React.Component {
           </TouchableOpacity>
           <TouchableOpacity onPress={() => this.removeWallet() }>
             <SettingsItem item={{'icon': 'trash', 'left': 'Remove wallet', 'right': ''}} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => this.copyMnemonic() }>
+            <SettingsItem item={{'icon': 'book', 'left': 'Copy recovery phrase', 'right': ''}} />
           </TouchableOpacity>
         </ScrollView>
       </View>
