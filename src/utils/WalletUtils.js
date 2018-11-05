@@ -290,10 +290,7 @@ export class WalletUtils {
 		}
 
 		await Promise.all(promises);
-		
-		if (updatedTransactions) {
-			await this.updateBalance();
-		}
+		await this.updateBalance();
 	}
 
 	async checkMempool() {
@@ -355,7 +352,7 @@ export class WalletUtils {
 	    	}
 	    }
 
-	    // alert(balance)
+	    alert(balance)
 
 	    this.wallet.balance = (balance*10000).toFixed(4);
 	    await saveWallet(this.wallet);
