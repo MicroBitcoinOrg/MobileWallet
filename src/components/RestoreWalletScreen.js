@@ -60,12 +60,12 @@ export default class RestoreWalletScreen extends React.Component {
           <View style={styles.btnContainer}>
             <TouchableOpacity
               style={styles.btnCreate}
-              onPress={() => this.props.navigation.navigate('CreateWallet')}>
+              onPress={() => this.props.navigation.push('CreateWallet')}>
               <Text style={styles.btnTextCreate}>CREATE WALLET</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.btnImport}
-              onPress={() => this.props.navigation.navigate('ImportWallet')}>
+              onPress={() => this.props.navigation.push('ImportWallet')}>
               <Text style={styles.btnTextImport}>IMPORT WALLET</Text>
             </TouchableOpacity>
           </View>

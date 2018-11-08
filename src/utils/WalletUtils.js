@@ -329,32 +329,32 @@ export class WalletUtils {
 	    var promises = [];
 	    var balance = 0;
 
-	    // for (var address in this.wallet.addresses.external) {
-	    // 	try{
-	    //     	balance += (await this.ecl.blockchainAddress_balance(address)).confirmed
-	    // 	} catch (e) { }
-	    // }
-
-	    // for (var address in this.wallet.addresses.internal) {
-	    //   try{
-	    //     balance += (await this.ecl.blockchainAddress_balance(address)).confirmed
-	    //   } catch (e) { }
-
-	    // }
-
-	    for (var timestamp in this.wallet.transactions) {
-	    	if (this.wallet.transactions[timestamp].type == "Sent") {
-	    		balance -= Number(this.wallet.transactions[timestamp].amount);
-	    		console.log(balance + " [" + this.wallet.transactions[timestamp].amount + "]")
-	    	} else {
-	    		balance += Number(this.wallet.transactions[timestamp].amount);
-	    		console.log(balance + " [" + this.wallet.transactions[timestamp].amount + "]")
-	    	}
+	    for (var address in this.wallet.addresses.external) {
+	    	try{
+	        	balance += (await this.ecl.blockchainAddress_balance(address)).confirmed
+	    	} catch (e) { }
 	    }
 
-	    alert(balance)
+	    for (var address in this.wallet.addresses.internal) {
+	      try{
+	        balance += (await this.ecl.blockchainAddress_balance(address)).confirmed
+	      } catch (e) { }
 
-	    this.wallet.balance = (balance*10000).toFixed(4);
+	    }
+
+	    // for (var timestamp in this.wallet.transactions) {
+	    // 	if (this.wallet.transactions[timestamp].type == "Sent") {
+	    // 		balance -= Number(this.wallet.transactions[timestamp].amount);
+	    // 		console.log(balance + " [" + this.wallet.transactions[timestamp].amount + "]")
+	    // 	} else {
+	    // 		balance += Number(this.wallet.transactions[timestamp].amount);
+	    // 		console.log(balance + " [" + this.wallet.transactions[timestamp].amount + "]")
+	    // 	}
+	    // }
+
+	    // alert(balance)
+
+	    this.wallet.balance = balance.toFixed(4);
 	    await saveWallet(this.wallet);
   	}
 

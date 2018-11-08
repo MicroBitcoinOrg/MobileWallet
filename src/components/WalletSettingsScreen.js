@@ -24,8 +24,7 @@ export default class WalletSettingsScreen extends React.Component {
     this.isCancelled = false
     this.state = {
 
-      wallet: this.props.navigation.getParam('wallet', null),
-      password: this.props.navigation.getParam('password', null)
+      walletUtils: this.props.navigation.getParam('walletUtils', null),
 
     }
   }
@@ -43,14 +42,14 @@ export default class WalletSettingsScreen extends React.Component {
   }
 
   copyMnemonic = () => {
-    Clipboard.setString(decryptData(this.state.wallet.mnemonicPhrase, this.state.password))
+    Clipboard.setString(decryptData(this.state.walletUtils.wallet.mnemonicPhrase, this.state.password))
     Alert.alert('Copy recovery phrase', 'The recovery phrase has been successfully copied!')
   }
 
   clearTransactions = () => {
     store.get('wallets').then((res) => {
       for (var i = 0; i < res.length; i++) {
-        if (res[i].id == this.state.wallet.id) {
+        if (res[i].id == this.state.walletUtils.wallet.id) {
           res[i].transactions = {}
           this.setState({wallet: res[i]})
           break
@@ -73,7 +72,7 @@ export default class WalletSettingsScreen extends React.Component {
       
               for (var i = 0; i < res.length; i++) {
                 
-                if(res[i].id == this.state.wallet.id) {
+                if(res[i].id == this.state.walletUtils.wallet.id) {
 
                   res.splice(i, 1)
                   break
@@ -96,9 +95,10 @@ export default class WalletSettingsScreen extends React.Component {
   changeHistoryCount = (itemValue) => {
     store.get('wallets').then((res) => {
       for (var i = 0; i < res.length; i++) {
-        if (res[i].id == this.state.wallet.id) {
+        if (res[i].id == this.state.walletUtils.wallet.id) {
           res[i].settings.historyCount = itemValue
-          this.setState({wallet: res[i]})
+          this.state.walletUtils.wallet = res[i]
+          this.setState({walletUtils: this.state.walletUtils})
           break
         }
       }
@@ -114,7 +114,7 @@ export default class WalletSettingsScreen extends React.Component {
           <TouchableOpacity>
           <SettingsItem item={{containerStyle: {padding: 0, flexDirection: 'column'}, 'icon': 'bookmarks', 'left': 'Number of transactions to display', 'right': '', own: 
             <Picker
-              selectedValue={this.state.wallet.settings.historyCount}
+              selectedValue={this.state.walletUtils.wallet.settings.historyCount}
               style={{ width: 100}}
               onValueChange={(itemValue, itemIndex) => this.changeHistoryCount(itemValue)}>
               <Picker.Item label="5" value="5" />

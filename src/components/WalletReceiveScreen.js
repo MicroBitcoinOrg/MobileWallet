@@ -19,48 +19,46 @@ export default class ReceiveScreen extends React.Component {
   constructor(props) {
 
     super(props);
-    this.walletUtils = this.props.navigation.getParam('walletUtils', null);
     this.state = {
       loading: false,
-      wallet: this.walletUtils.wallet
+      walletUtils: this.props.navigation.getParam('walletUtils', null)
     }
 
     const willFocusSubscription = this.props.navigation.addListener(
       'willFocus',
       payload => {
-        this.setState({wallet: this.walletUtils.wallet})
+        this.setState({wallet: this.state.walletUtils.wallet})
       }
     )
     
   }
 
   importWIFKey = () => {
-    this.props.navigation.navigate('ImportKey', {walletUtils: this.walletUtils});
+    this.props.navigation.navigate('ImportKey', {walletUtils: this.state.walletUtils});
   }
 
   changeCurrentAddress = (address) => {
-    this.walletUtils.wallet.addresses.currentExternal = address;
-    saveWallet(this.walletUtils.wallet);
-    this.setState({wallet: this.walletUtils.wallet});
+    this.state.walletUtils.wallet.addresses.currentExternal = address;
+    saveWallet(this.state.walletUtils.wallet);
+    this.setState({walletUtils: this.state.walletUtils});
   }
 
   generateNewAddress = () => {
     this.setState({loading: true})
     store.get("wallets").then((res) => {
 
-      generateNextAddress(this.walletUtils.wallet, this.walletUtils.password, 0).then((address) => {
-        this.walletUtils.wallet.addresses.external[address.address] = address.data;
-        this.walletUtils.wallet.addresses.currentExternal = address.address;
+      generateNextAddress(this.state.walletUtils.wallet, this.state.walletUtils.password, 0).then((address) => {
+        this.state.walletUtils.wallet.addresses.external[address.address] = address.data;
+        this.state.walletUtils.wallet.addresses.currentExternal = address.address;
 
         for (var i = 0; i < res.length; i++) {
-          if(res[i].id == this.walletUtils.wallet.id) {
-            res[i] = this.walletUtils.wallet;
+          if(res[i].id == this.state.walletUtils.wallet.id) {
+            res[i] = this.state.walletUtils.wallet;
             break;
           }
         }
 
         store.save('wallets', res);
-        this.setState({wallet: this.walletUtils.wallet});
         this.setState({loading: false});
       })
 
@@ -79,7 +77,7 @@ export default class ReceiveScreen extends React.Component {
 
   render() {
 
-    const { wallet, loading } = this.state
+    const { walletUtils, loading } = this.state
 
     return(
       <View style={styles.container}>
@@ -90,24 +88,24 @@ export default class ReceiveScreen extends React.Component {
         <View style={styles.innerContainer}>
           <View style={styles.qrContainer}>
             <Text style={styles.txtTitle}>Receive</Text>
-            <TouchableOpacity onPress={() => Clipboard.setString(wallet.addresses.currentExternal)}>
+            <TouchableOpacity onPress={() => Clipboard.setString(walletUtils.wallet.addresses.currentExternal)}>
               <QRCode
-                value={"microbitcoin:" + wallet.addresses.currentExternal}
+                value={"microbitcoin:" + walletUtils.wallet.addresses.currentExternal}
                 size={240}
                 bgColor='#000672'
                 fgColor='white'
               />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => Clipboard.setString(wallet.addresses.currentExternal)}>
-              <Text selectable style={styles.txtAddress}>{wallet.addresses.currentExternal}</Text>
+            <TouchableOpacity onPress={() => Clipboard.setString(walletUtils.wallet.addresses.currentExternal)}>
+              <Text selectable style={styles.txtAddress}>{walletUtils.wallet.addresses.currentExternal}</Text>
             </TouchableOpacity>
           </View>
         </View>
         <View style={styles.spacing}>
           {
-            Object.keys(wallet.addresses.external).map((address, i) => (
+            Object.keys(walletUtils.wallet.addresses.external).map((address, i) => (
               <TouchableOpacity key={i} onPress={() => this.changeCurrentAddress(address)}>
-                <MyWalletAddress address={address} current={wallet.addresses.currentExternal} />
+                <MyWalletAddress address={address} current={walletUtils.wallet.addresses.currentExternal} />
               </TouchableOpacity>
             ))
           }

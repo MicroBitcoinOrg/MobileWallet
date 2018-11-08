@@ -18,9 +18,9 @@ export default class openPasswordWalletScreen extends React.Component {
   constructor(props) {
 
     super(props);
-    this.walletUtils = this.props.navigation.getParam('walletUtils', null);
     this.state = {
-      key: ""
+      key: "",
+      walletUtils: this.props.navigation.getParam('walletUtils', null)
     }
 
   }
@@ -30,17 +30,20 @@ export default class openPasswordWalletScreen extends React.Component {
   }
 
   import = () => {
+    this.setState({key: this.state.key.trim()});
+
     if(this.state.key != "" && this.state.key != null) {
       let address = coinjs.wif2address(this.state.key).address;
-      if(this.walletUtils.wallet.addresses.external[address] == undefined) {
+      
+      if(this.state.walletUtils.wallet.addresses.external[address] == undefined) {
         Alert.alert("Import WIF key", `Is this your address?\n\n${address}`,
         [
           {text: 'No', onPress: () => false},
           {text: 'Yes', onPress: () => {
-            this.walletUtils.wallet.addresses.external[address] = {"used": false, "privateKey": encryptData(this.state.key, this.walletUtils.password)};
-            this.walletUtils.updateBalance();
-            this.walletUtils.subscribeToAddresses();
-            saveWallet(this.walletUtils.wallet);
+            this.state.walletUtils.wallet.addresses.external[address] = {"used": false, "privateKey": encryptData(this.state.key, this.state.walletUtils.password)};
+            this.state.walletUtils.updateBalance();
+            this.state.walletUtils.subscribeToAddresses();
+            saveWallet(this.state.walletUtils.wallet);
             this.props.navigation.goBack();
           }},
         ],

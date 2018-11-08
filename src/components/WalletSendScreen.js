@@ -20,14 +20,13 @@ export default class SendScreen extends React.Component {
   constructor(props) {
 
     super(props)
-    this.walletUtils = this.props.navigation.getParam('walletUtils', null);
     this.state = {
       loading: false,
       rAddress: '',
       rAmount: '',
       rFees: '',
       smartFee: '0.000',
-      wallet: this.walletUtils.wallet
+      walletUtils: this.props.navigation.getParam('walletUtils', null)
     }
 
     const willFocusSubscription = this.props.navigation.addListener(
@@ -35,7 +34,7 @@ export default class SendScreen extends React.Component {
       payload => {
 
         this.setState({rAddress: this.props.navigation.getParam('scannedAddress', '')})
-        this.walletUtils.estimateFee().then((res) => {
+        this.state.walletUtils.estimateFee().then((res) => {
           this.setState({smartFee: res})
         })
 
@@ -81,7 +80,7 @@ export default class SendScreen extends React.Component {
   sendTransaction = async() => {
 
     this.setState({loading: true})
-    let tx = await this.walletUtils.sendTransation(this.state.rAddress.split(' ').join(''), this.state.rAmount, this.state.rFees)
+    let tx = await this.state.walletUtils.sendTransation(this.state.rAddress.split(' ').join(''), this.state.rAmount, this.state.rFees)
     console.log("TX:", tx)
 
     this.setState({loading: false})

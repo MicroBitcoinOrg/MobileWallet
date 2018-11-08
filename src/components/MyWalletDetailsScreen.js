@@ -24,19 +24,19 @@ export default class MyWalletDetailsScreen extends React.Component {
 
   constructor(props) {
     super(props)
-    this.walletUtils = new WalletUtils(this.props.navigation.getParam('wallet', null), this.props.navigation.getParam('password', null), global.ecl);
-    this.walletUtils.subscribeToAddresses();
-    this.walletUtils.checkHistory();
-    this.isCancelled = false;
     this.state = {
 
+      updatingBalance: false,
       loading: false,
       isConnected: false,
-      wallet: this.props.navigation.getParam('wallet', null),
-      password: this.props.navigation.getParam('password', null),
+      walletUtils: new WalletUtils(this.props.navigation.getParam('wallet', null), this.props.navigation.getParam('password', null), global.ecl),
       appState: AppState.currentState
 
     }
+
+    this.state.walletUtils.subscribeToAddresses();
+    this.state.walletUtils.checkHistory();
+    this.state.isCancelled = false;
     
     const willFocusSubscription = this.props.navigation.addListener(
       'willFocus',
@@ -83,7 +83,14 @@ export default class MyWalletDetailsScreen extends React.Component {
   }
 
   updateWallet() {
-    if(!this.isCancelled) this.setState({wallet: this.walletUtils.wallet});
+    if(!this.isCancelled) this.setState({walletUtils: this.state.walletUtils});
+  }
+
+  async updateBalance() {
+    if(!this.isCancelled) this.setState({updatingBalance: true});
+    await this.state.walletUtils.updateBalance();
+    if(!this.isCancelled) this.setState({walletUtils: this.state.walletUtils});
+    if(!this.isCancelled) this.setState({updatingBalance: false});
   }
 
   static navigationOptions = ({ navigation }) => {
@@ -98,7 +105,7 @@ export default class MyWalletDetailsScreen extends React.Component {
   }
 
   navigateToSettings = () => {
-    this.props.navigation.navigate("WalletSettings", {wallet: this.state.wallet, password: this.state.password})
+    this.props.navigation.navigate("WalletSettings", {walletUtils: this.state.walletUtils})
   }
 
 
@@ -117,9 +124,9 @@ export default class MyWalletDetailsScreen extends React.Component {
 
   handleAppStateChange = (nextAppState) => {
     if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
-      this.walletUtils = new WalletUtils(this.state.wallet, this.props.navigation.getParam('password', null), global.ecl);
-      this.walletUtils.subscribeToAddresses();
-      this.walletUtils.checkHistory();
+      this.setState({walletUtils: new WalletUtils(this.state.walletUtils.wallet, this.state.walletUtils.password, global.ecl)});
+      this.state.walletUtils.subscribeToAddresses();
+      this.state.walletUtils.checkHistory();
     }
     if (!this.isCancelled) this.setState({appState: nextAppState});
   }
@@ -134,7 +141,7 @@ export default class MyWalletDetailsScreen extends React.Component {
 
   render() {
 
-    const { wallet, password, isConnected, loading, updatingBalance } = this.state
+    const { walletUtils, isConnected, loading, updatingBalance } = this.state
     
       return(
         <View style={styles.container}>
@@ -142,18 +149,18 @@ export default class MyWalletDetailsScreen extends React.Component {
             <Loader loading={true} />
           }
           <View style={styles.balanceContainer}>
-            <Text style={styles.balanceText}>{`${wallet.balance/10000} MBC`}</Text>
+            {updatingBalance ? <ActivityIndicator size="small" color="#fff" style={styles.balanceLoading} /> : <TouchableOpacity onPress={() => this.updateBalance()}><Text style={styles.balanceText}>{`${walletUtils.wallet.balance/10000} MBC`}</Text></TouchableOpacity>}
             <Text>
               <Icon name="controller-record" size={14} color={isConnected ? '#00d47d' : '#ff4133'} />
-              <Text style={styles.balanceSubText}> {wallet.title}</Text>
+              <Text style={styles.balanceSubText}> {walletUtils.wallet.title}</Text>
             </Text>
           </View>
           <ScrollView>
-          {wallet.transactions == null ? <View style={styles.noHistoryContainer}><ActivityIndicator size="large" color="#000672" /></View> : null}
-            {wallet.transactions != null && Object.keys(wallet.transactions).length == 0 && wallet.mempool.length == 0 ? <View style={styles.noHistoryContainer}><Text style={styles.labelText}>Wallet history is empty</Text></View> : null}
-            {wallet.mempool.length > 0 ? <Text style={styles.addressHeader}>Unconfirmed transactions</Text> : null}
+          {walletUtils.wallet.transactions == null ? <View style={styles.noHistoryContainer}><ActivityIndicator size="large" color="#000672" /></View> : null}
+            {walletUtils.wallet.transactions != null && Object.keys(walletUtils.wallet.transactions).length == 0 && walletUtils.wallet.mempool.length == 0 ? <View style={styles.noHistoryContainer}><Text style={styles.labelText}>Wallet history is empty</Text></View> : null}
+            {walletUtils.wallet.mempool.length > 0 ? <Text style={styles.addressHeader}>Unconfirmed transactions</Text> : null}
             {
-              wallet.mempool.map((tx) => (
+              walletUtils.wallet.mempool.map((tx) => (
                 <TouchableOpacity
                   key={tx['hash']}
                   onPress={() => this.openLink(tx['hash'])}>
@@ -162,20 +169,20 @@ export default class MyWalletDetailsScreen extends React.Component {
               ))
             }
 
-            {Object.keys(wallet.transactions).length > 0 ? <Text style={styles.addressHeader}>Confirmed transactions</Text> : null}
+            {Object.keys(walletUtils.wallet.transactions).length > 0 ? <Text style={styles.addressHeader}>Confirmed transactions</Text> : null}
             {
-              wallet.transactions != null ? Object.keys(wallet.transactions).reverse().slice(0, wallet.settings.historyCount).map((tx) => (
+              walletUtils.wallet.transactions != null ? Object.keys(walletUtils.wallet.transactions).reverse().slice(0, walletUtils.wallet.settings.historyCount).map((tx) => (
                 <TouchableOpacity
-                  key={wallet.transactions[tx]['hash']}
-                  onPress={() => this.openLink(wallet.transactions[tx]['hash'])}>
-                  <MyWalletTransaction tx={wallet.transactions[tx]} />
+                  key={walletUtils.wallet.transactions[tx]['hash']}
+                  onPress={() => this.openLink(walletUtils.wallet.transactions[tx]['hash'])}>
+                  <MyWalletTransaction tx={walletUtils.wallet.transactions[tx]} />
                 </TouchableOpacity>
               )) : null
             }
           </ScrollView>
           <View style={styles.navbar}>
             <TouchableOpacity
-              onPress={() => this.props.navigation.navigate('WalletReceive', {'wallet': wallet, 'password': password, 'walletUtils': this.walletUtils})}
+              onPress={() => this.props.navigation.navigate('WalletReceive', {'walletUtils': walletUtils})}
               style={styles.navbarIconButton}>
               <NavbarButton label='Receive' icon='login' />
             </TouchableOpacity>
@@ -184,7 +191,7 @@ export default class MyWalletDetailsScreen extends React.Component {
               <NavbarButton label='Wallets' icon='wallet' />
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => this.props.navigation.navigate('WalletSend', {'wallet': wallet, 'password': password, 'walletUtils': this.walletUtils})}
+              onPress={() => this.props.navigation.navigate('WalletSend', {'walletUtils': walletUtils})}
               style={styles.navbarIconButton}>
               <NavbarButton label='Send' icon='log-out' />
             </TouchableOpacity>
