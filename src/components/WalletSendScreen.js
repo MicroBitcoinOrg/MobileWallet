@@ -187,8 +187,8 @@ export default class SendScreen extends React.Component {
               <TextInput
                 onChangeText={(rFees) => this.setState({rFees})}
                 value={this.state.rFees}
-                placeholder='0.001'
-                defaultValue='0.001'
+                placeholder='0.01'
+                defaultValue='0.01'
                 underlineColorAndroid='transparent'
                 style={styles.inputText}
               />
@@ -199,7 +199,7 @@ export default class SendScreen extends React.Component {
 
           <View style={styles.btnConfirmContainer}>
             <TouchableOpacity style={styles.btnConfirm} onPress={this.onConfirm}>
-              <Text style={styles.btnConfirmText}>SEND MICROBITCOIN</Text>
+              <Text style={styles.btnConfirmText}>SEND</Text>
             </TouchableOpacity>
           </View>
         </View>
