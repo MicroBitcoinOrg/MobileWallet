@@ -42,7 +42,7 @@ export default class WalletSettingsScreen extends React.Component {
   }
 
   copyMnemonic = () => {
-    Clipboard.setString(decryptData(this.state.walletUtils.wallet.mnemonicPhrase, this.state.password))
+    Clipboard.setString(decryptData(this.state.walletUtils.wallet.mnemonicPhrase, this.state.walletUtils.password))
     Alert.alert('Copy recovery phrase', 'The recovery phrase has been successfully copied!')
   }
 
@@ -55,6 +55,8 @@ export default class WalletSettingsScreen extends React.Component {
           break
         }
       }
+
+      this.setState({walletUtils: this.state.walletUtils});
       store.save('wallets', res)
       this.props.navigation.push("MyWallets")
     })

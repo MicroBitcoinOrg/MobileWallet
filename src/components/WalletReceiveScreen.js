@@ -58,6 +58,7 @@ export default class ReceiveScreen extends React.Component {
           }
         }
 
+        this.setState({walletUtils: this.state.walletUtils});
         store.save('wallets', res);
         this.setState({loading: false});
       })

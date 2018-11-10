@@ -44,6 +44,7 @@ export default class openPasswordWalletScreen extends React.Component {
             this.state.walletUtils.updateBalance();
             this.state.walletUtils.subscribeToAddresses();
             saveWallet(this.state.walletUtils.wallet);
+            this.setState({walletUtils: this.state.walletUtils});
             this.props.navigation.goBack();
           }},
         ],
