@@ -11,14 +11,13 @@ export class WalletUtils {
 		this.mempoolHashes = [];
 		this.password = password;
 		this.mempoolChecking = false;
-		this.ecl.subscribe.on('blockchain.address.subscribe', (res) => { this.checkHistory(res[0]) });
 		for (var key in this.wallet.transactions) this.hashes.push(this.wallet.transactions[key].hash);
 		
 		for (var i = 0; i < this.wallet.mempool.length; i++) {
 			this.mempoolHashes.push(this.wallet.mempool[i].hash);
 		}
 
-		if (this.wallet.mempool.length > 0 && !this.mempoolChecking) {
+		if (this.wallet.mempool.length > 0) {
 			this.checkMempool();
 		}
 
@@ -136,12 +135,12 @@ export class WalletUtils {
 		if (tx != null) {
 			for (var i = 0; i < usedAddresses.length; i++) {
 				if (this.wallet.addresses.external[usedAddresses[i]] !== undefined) {
-					console.log("ADDRESS:", usedAddresses[i])
-					console.log("PRV KEY:", decryptData(this.wallet.addresses.external[usedAddresses[i]].privateKey, this.password))
+					// console.log("ADDRESS:", usedAddresses[i])
+					// console.log("PRV KEY:", decryptData(this.wallet.addresses.external[usedAddresses[i]].privateKey, this.password))
 					tx = this.signTransaction(tx, decryptData(this.wallet.addresses.external[usedAddresses[i]].privateKey, this.password))
 				} else {
-					console.log("ADDRESS:", usedAddresses[i])
-					console.log("PRV KEY:", decryptData(this.wallet.addresses.internal[usedAddresses[i]].privateKey, this.password))
+					// console.log("ADDRESS:", usedAddresses[i])
+					// console.log("PRV KEY:", decryptData(this.wallet.addresses.internal[usedAddresses[i]].privateKey, this.password))
 					tx = this.signTransaction(tx, decryptData(this.wallet.addresses.internal[usedAddresses[i]].privateKey, this.password))
 				}
 				
@@ -162,6 +161,7 @@ export class WalletUtils {
 	}
 
 	async subscribeToAddresses() {
+		this.ecl.subscribe.on('blockchain.address.subscribe', (res) => { this.checkHistory(res[0]) });
 		for (var address in this.wallet.addresses.external) {
 			this.ecl.blockchainAddress_subscribe(address);
 		}
@@ -171,32 +171,29 @@ export class WalletUtils {
 		}
 	}
 
-	async addTransaction(transactionHash) {
+	async addTransaction(transactionHash, isMempool) {
 		if(transactionHash == null) return null;
 
-		let transactionVerbose = await this.ecl.blockchainTransaction_verbose(transactionHash);
+		let transactionVerbose = await this.ecl.blockchainTransaction_fullVerbose(transactionHash);
+
 		var transaction = {};
 		transaction.hash = transactionHash;
 		transaction.amount = 0;
 		var promises = [];
 
 		for (var k = 0; k < transactionVerbose.vin.length; k++) {
-			if (transactionVerbose.vin[k].txid != null) {
-				let kIndex = k
-				promises.push(this.ecl.blockchainTransaction_verbose(transactionVerbose.vin[k].txid).then((verbose) => {
-				  if (Object.keys(this.wallet.addresses.internal)
-				      	 .includes(verbose.vout[transactionVerbose.vin[kIndex].vout]
-				      	 .scriptPubKey.addresses[0]) || Object.keys(this.wallet.addresses.external)
-				      	 .includes(verbose.vout[transactionVerbose.vin[kIndex].vout]
-				      	 .scriptPubKey.addresses[0]) ) {
-				      transaction.amount += verbose.vout[transactionVerbose.vin[kIndex].vout].value;
-				      transaction.type = 'Sent';
-				  }
-			  }))
+			if (transactionVerbose.vin[k].scriptPubKey.addresses == null) {
+				continue;
+			} 
+
+			if (Object.keys(this.wallet.addresses.internal)
+			      	 .includes(transactionVerbose.vin[k].scriptPubKey.addresses[0]) ||
+			      	 Object.keys(this.wallet.addresses.external)
+			      	 .includes(transactionVerbose.vin[k].scriptPubKey.addresses[0]) ) {
+				transaction.amount += transactionVerbose.vin[k].value;
+				transaction.type = 'Sent';
 			}
 		}
-
-		await Promise.all(promises);
 
 		if (transaction.amount == 0) {
 			transaction.type = 'Received';
@@ -224,7 +221,7 @@ export class WalletUtils {
 			}
 		}
 
-		if (transactionVerbose.time != null) {
+		if (!isMempool && transactionVerbose.time != null) {
 			transaction.date = new Date(transactionVerbose.time * 1000)
 							.toLocaleDateString('en-GB', {  
 		                      day : 'numeric',
@@ -235,14 +232,11 @@ export class WalletUtils {
 			return transaction;
 		} else {
 			transaction.date = null;
-
-			if (!this.mempoolHashes.includes(transactionHash)) {
-				this.mempoolHashes.push(transactionHash);
-				this.wallet.mempool.push(transaction);
+			this.wallet.mempool.push(transaction);
 			
-				if (!this.mempoolChecking) {
-					this.checkMempool();
-				}
+			if (!this.mempoolChecking) {
+				alert('test');
+				this.checkMempool();
 			}
 			
 			return null;
@@ -253,7 +247,6 @@ export class WalletUtils {
 	async checkHistory(checkAddress = null) {
 		var promises = [];
 		var allHistory = [];
-		var updatedTransactions = false;
 
 		if(checkAddress == null) {
 			for (let address in this.wallet.addresses.internal) {
@@ -282,11 +275,16 @@ export class WalletUtils {
 		promises = [];
 		
 		for (var i = 0; i < allHistory.length; i++) {
-			if(!this.hashes.includes(allHistory[i].tx_hash)) {
-				this.hashes.push(allHistory[i].tx_hash);
-				promises.push(this.addTransaction(allHistory[i].tx_hash));
-				updatedTransactions = true;
+			if (!this.mempoolHashes.includes(allHistory[i].tx_hash)) {
+				if (allHistory[i].fee !== undefined) {
+					this.mempoolHashes.push(allHistory[i].tx_hash);
+					await this.addTransaction(allHistory[i].tx_hash, true);
+				} else if(!this.hashes.includes(allHistory[i].tx_hash)) {
+					this.hashes.push(allHistory[i].tx_hash);
+					promises.push(this.addTransaction(allHistory[i].tx_hash, false));
+				}
 			}
+			
 		}
 
 		await Promise.all(promises);

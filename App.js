@@ -1,7 +1,7 @@
 import './shim'
 import React from 'react'
 import { createStackNavigator, createBottomTabNavigator } from 'react-navigation'
-import { YellowBox, AppRegistry, AppState } from 'react-native'
+import { YellowBox, AppRegistry, AppState, NetInfo } from 'react-native'
 import store from 'react-native-simple-store'
 
 YellowBox.ignoreWarnings(['Warning: isMounted(...) is deprecated', 'Module RCTImageLoader', 'Class RCTCxxModule']);
@@ -59,7 +59,8 @@ export default class App extends React.Component {
     global.port = 7403;
     global.ip = "13.57.248.201";
     global.ecl = new ElectrumCli(global.port, global.ip, 'tcp');
-    global.version = "1.0.2";
+    global.version = "1.0.3";
+    global.connectionStatus = false;
 
     global.ecl.connect().then(() => this.ping)
   }
@@ -82,9 +83,10 @@ export default class App extends React.Component {
     this.setState({appState: nextAppState});
   }
 
-
   componentDidMount() {
     AppState.addEventListener('change', this.handleAppStateChange);
+    NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
+
     this.ping();
     store.get("wallets").then((wallets) => {
       if (wallets != null) {
@@ -97,6 +99,18 @@ export default class App extends React.Component {
           store.save('wallets', wallets)
       }
     })
+  }
+
+  componentWillUnmount() {
+    NetInfo.isConnected.removeEventListener('connectionChange', this.handleConnectivityChange);
+  }
+
+  handleConnectivityChange = isConnected => {
+    if (isConnected) {
+       global.connectionStatus = isConnected;
+    } else {
+       global.connectionStatus = isConnected;
+    }
   }
 
   render() {

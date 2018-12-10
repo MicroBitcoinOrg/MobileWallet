@@ -51,6 +51,7 @@ export default class WalletSettingsScreen extends React.Component {
       for (var i = 0; i < res.length; i++) {
         if (res[i].id == this.state.walletUtils.wallet.id) {
           res[i].transactions = {}
+          res[i].mempool = []
           this.setState({wallet: res[i]})
           break
         }

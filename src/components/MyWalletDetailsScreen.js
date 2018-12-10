@@ -4,7 +4,6 @@ import {
   ActivityIndicator,
   Platform,
   BackHandler,
-  NetInfo,
   ScrollView,
   StyleSheet,
   Text,
@@ -28,15 +27,12 @@ export default class MyWalletDetailsScreen extends React.Component {
 
       updatingBalance: false,
       loading: false,
-      isConnected: false,
+      isConnected: global.connectionStatus,
       walletUtils: new WalletUtils(this.props.navigation.getParam('wallet', null), this.props.navigation.getParam('password', null), global.ecl),
       appState: AppState.currentState
 
     }
-
-    this.state.walletUtils.subscribeToAddresses();
-    this.state.walletUtils.checkHistory();
-    this.state.isCancelled = false;
+    this.isCancelled = false;
     
     const willFocusSubscription = this.props.navigation.addListener(
       'willFocus',
@@ -45,21 +41,6 @@ export default class MyWalletDetailsScreen extends React.Component {
         this.props.navigation.setParams({goBack: this.goBack})
         this.interval = setInterval(() => this.updateWallet(), 2000);
         this.isCancelled = false
-
-        NetInfo.isConnected.fetch().then(isConnected => {
-          !this.isCancelled && this.setState({isConnected: isConnected})
-        });
-
-        handleFirstConnectivityChange = (isConnected) => {
-          !this.isCancelled && this.setState({isConnected: isConnected})
-        }
-
-        NetInfo.isConnected.addEventListener(
-
-          'connectionChange',
-          handleFirstConnectivityChange
-
-        )
         AppState.addEventListener('change', this.handleAppStateChange);
       }
     )
@@ -69,21 +50,24 @@ export default class MyWalletDetailsScreen extends React.Component {
       payload => {
         this.isCancelled = true
         clearInterval(this.interval);
-
-        NetInfo.isConnected.removeEventListener(
-
-          'connectionChange',
-          handleFirstConnectivityChange
-
-        );
         AppState.removeEventListener('change', this.handleAppStateChange);
       }
     )
+  }
 
+  componentDidMount() {
+    !this.isCancelled && this.state.walletUtils.subscribeToAddresses();
+    !this.isCancelled && this.state.walletUtils.checkHistory();
+  }
+
+  componentWillUnmount() {
+    this.isCancelled = true;
+    global.ecl.onClose();
   }
 
   updateWallet() {
-    if(!this.isCancelled) this.setState({walletUtils: this.state.walletUtils});
+    !this.isCancelled && this.setState({walletUtils: this.state.walletUtils});
+    !this.isCancelled && this.setState({isConnected: global.connectionStatus});
   }
 
   async updateBalance() {
@@ -131,13 +115,6 @@ export default class MyWalletDetailsScreen extends React.Component {
     if (!this.isCancelled) this.setState({appState: nextAppState});
   }
 
-  handleFirstConnectivityChange = (connectionInfo) => {
-    console.log('First change, type: ' + connectionInfo.type + ', effectiveType: ' + connectionInfo.effectiveType);
-    NetInfo.removeEventListener(
-      'connectionChange',
-      handleFirstConnectivityChange
-    );
-  }
 
   render() {
 

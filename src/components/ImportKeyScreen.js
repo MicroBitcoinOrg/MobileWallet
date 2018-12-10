@@ -32,7 +32,7 @@ export default class openPasswordWalletScreen extends React.Component {
   import = () => {
     this.setState({key: this.state.key.trim()});
 
-    if(this.state.key != "" && this.state.key != null) {
+    if(this.state.key != "" && this.state.key.length == 52) {
       let address = coinjs.wif2address(this.state.key).address;
       
       if(this.state.walletUtils.wallet.addresses.external[address] == undefined) {
@@ -52,8 +52,10 @@ export default class openPasswordWalletScreen extends React.Component {
       } else {
         Alert.alert("Import WIF key", "This WIF key already exists in your wallet!");
       }
-    } else {
+    } else if(this.state.key == "") {
       Alert.alert("Import WIF key", "WIF key is empty!");
+    } else if(this.state.key.length < 52) {
+      Alert.alert("Import WIF key", "Too short WIF key!");
     }
     
   }
