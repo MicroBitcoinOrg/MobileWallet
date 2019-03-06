@@ -79,11 +79,15 @@ export class WalletUtils {
 			if (balance != null && balance.confirmed > 0) {
 				try {
 					let utxo = await this.ecl.blockchainAddress_utxo(address, balance.confirmed);
-					console.log("utxo: "+JSON.stringify(utxo));
+
 					usedAddresses.push(address);
 					for (var k = 0; k < utxo.length; k++) {
 						inputs.push({"tx_hash": utxo[k].tx_hash, "tx_pos": utxo[k].tx_pos, "script": utxo[k].script});
 						outputsAmount += utxo[k].value/10000;
+
+						if (outputsAmount-amount-fee > 0) {
+							break;
+						}
 					}
 				} catch (e) {
 					console.log(e);
@@ -91,32 +95,47 @@ export class WalletUtils {
 			} else {
 				continue;
 			}
+
+			if (outputsAmount-amount-fee > 0) {
+				break;
+			}
+
 		}
 
-		for (var address in this.wallet.addresses.internal) {
-			var balance = null;
+		if (outputsAmount-amount-fee <= 0) {
+			for (var address in this.wallet.addresses.internal) {
+				var balance = null;
 
-			try {
-				balance = await this.ecl.blockchainAddress_balance(address);
-				console.log("Balance: "+JSON.stringify(balance));
-			} catch (e) {
-				console.log(e);
-			}
-
-			if (balance != null && balance.confirmed > 0) {
 				try {
-					let utxo = await this.ecl.blockchainAddress_utxo(address, balance.confirmed);
-					console.log("utxo: "+JSON.stringify(utxo));
-					usedAddresses.push(address);
-					for (var k = 0; k < utxo.length; k++) {
-						inputs.push({"tx_hash": utxo[k].tx_hash, "tx_pos": utxo[k].tx_pos, "script": utxo[k].script});
-						outputsAmount += utxo[k].value/10000;
-					}
+					balance = await this.ecl.blockchainAddress_balance(address);
+					console.log("Balance: "+JSON.stringify(balance));
 				} catch (e) {
 					console.log(e);
 				}
-			} else {
-				continue;
+
+				if (balance != null && balance.confirmed > 0) {
+					try {
+						let utxo = await this.ecl.blockchainAddress_utxo(address, balance.confirmed);
+						console.log("utxo: "+JSON.stringify(utxo));
+						usedAddresses.push(address);
+						for (var k = 0; k < utxo.length; k++) {
+							inputs.push({"tx_hash": utxo[k].tx_hash, "tx_pos": utxo[k].tx_pos, "script": utxo[k].script});
+							outputsAmount += utxo[k].value/10000;
+
+							if (outputsAmount-amount-fee > 0) {
+								break;
+							}
+						}
+					} catch (e) {
+						console.log(e);
+					}
+				} else {
+					continue;
+				}
+
+				if (outputsAmount-amount-fee > 0) {
+					break;
+				}
 			}
 		}
 
@@ -124,10 +143,14 @@ export class WalletUtils {
 			return {error: "Output amount error"};
 		}
 
-		outputs.push({"address":recieveAddress, "amount": amount});
+		outputs.push({"address": recieveAddress, "amount": amount});
 
-		if (outputsAmount-amount-fee != 0 && this.wallet.addresses.currentInternal != null) {
-			outputs.push({"address": this.wallet.addresses.currentInternal, "amount": (outputsAmount-amount-fee).toFixed(4).toString()});
+		if (outputsAmount-amount-fee > 0) {
+			if (this.wallet.addresses.currentExternal != null) {
+				outputs.push({"address": this.wallet.addresses.currentExternal, "amount": (outputsAmount-amount-fee).toFixed(4).toString()});
+			} else {
+				return {error: "Current address error"};
+			}
 		}
 
 		let tx = this.createTransaction(inputs, outputs).serialize()
@@ -135,12 +158,8 @@ export class WalletUtils {
 		if (tx != null) {
 			for (var i = 0; i < usedAddresses.length; i++) {
 				if (this.wallet.addresses.external[usedAddresses[i]] !== undefined) {
-					// console.log("ADDRESS:", usedAddresses[i])
-					// console.log("PRV KEY:", decryptData(this.wallet.addresses.external[usedAddresses[i]].privateKey, this.password))
 					tx = this.signTransaction(tx, decryptData(this.wallet.addresses.external[usedAddresses[i]].privateKey, this.password))
 				} else {
-					// console.log("ADDRESS:", usedAddresses[i])
-					// console.log("PRV KEY:", decryptData(this.wallet.addresses.internal[usedAddresses[i]].privateKey, this.password))
 					tx = this.signTransaction(tx, decryptData(this.wallet.addresses.internal[usedAddresses[i]].privateKey, this.password))
 				}
 				
@@ -149,10 +168,12 @@ export class WalletUtils {
 
 		try {
 			let broadcast = await this.ecl.blockchainTransaction_send(tx)
+			/*
 			let address = await generateNextAddress(this.wallet, this.password, 1);
 			this.wallet.addresses.internal[address.address] = address.data;
           	this.wallet.addresses.currentInternal = address.address;
 			saveWallet(this.wallet);
+			*/
 			return broadcast;
 		} catch (e) {
 			return {error: e.message}
@@ -235,7 +256,6 @@ export class WalletUtils {
 			this.wallet.mempool.push(transaction);
 			
 			if (!this.mempoolChecking) {
-				alert('test');
 				this.checkMempool();
 			}
 			

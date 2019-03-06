@@ -101,7 +101,7 @@ android {
         applicationId "com.microbitcoin"
         minSdkVersion 16
         targetSdkVersion 27
-        versionCode 9
+        versionCode 10
         versionName "1.0.3"
         ndk {
             abiFilters "armeabi-v7a", "x86"
@@ -148,6 +148,7 @@ android {
 }
 
 dependencies {
+    compile project(':react-native-device-info')
     compile project(':react-native-tcp')
     implementation (project(':react-native-camera')) {
         exclude group: "com.android.support"

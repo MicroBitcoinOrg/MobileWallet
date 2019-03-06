@@ -3,6 +3,7 @@ import React from 'react'
 import { createStackNavigator, createBottomTabNavigator } from 'react-navigation'
 import { YellowBox, AppRegistry, AppState, NetInfo } from 'react-native'
 import store from 'react-native-simple-store'
+import DeviceInfo from 'react-native-device-info'
 
 YellowBox.ignoreWarnings(['Warning: isMounted(...) is deprecated', 'Module RCTImageLoader', 'Class RCTCxxModule']);
 
@@ -59,7 +60,8 @@ export default class App extends React.Component {
     global.port = 7403;
     global.ip = "13.57.248.201";
     global.ecl = new ElectrumCli(global.port, global.ip, 'tcp');
-    global.version = "1.0.3";
+    global.version = DeviceInfo.getVersion();
+    global.build = DeviceInfo.getBuildNumber();
     global.connectionStatus = false;
 
     global.ecl.connect().then(() => this.ping)

@@ -137,10 +137,12 @@ export default class WalletSettingsScreen extends React.Component {
             <SettingsItem item={{'icon': 'trash', 'left': 'Remove wallet', 'right': ''}} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => this.copyMnemonic() }>
-            <SettingsItem item={{'icon': 'book', 'left': 'Copy recovery phrase', 'right': ''}} />
+            <SettingsItem item={{'icon': 'clipboard', 'left': 'Copy recovery phrase', 'right': ''}} />
           </TouchableOpacity>
+          <View style={styles.spacing}></View>
+          <SettingsItem item={{'icon': 'info', 'left': `Ver. ${global.version} build ${global.build}`, 'right': ''}} />   
         </ScrollView>
-      </View>
+      </View> 
     );
   }
 }
@@ -161,9 +163,9 @@ class SettingsItem extends React.Component {
             <Text style={styles.itemRight}>{item.right}</Text>
           </View>
         </View>
-        {item.own != null ? <View style={[styles.itemContainer, item.containerStyle != null ? item.containerStyle : null]}>
+        {item.own != null && <View style={[styles.itemContainer, item.containerStyle != null ? item.containerStyle : null]}>
            {item.own}
-        </View> : null}
+        </View>}
       </View>
     )
   }
@@ -189,6 +191,21 @@ const styles = StyleSheet.create({
     elevation: 1,
     zIndex: 10,
   },
+  infoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 1,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 0.1 },
+    shadowOpacity: 0.33,
+    shadowRadius: 0,
+    elevation: 1,
+    zIndex: 10,
+  },
+  spacing: {
+    flex: 1
+  },
   itemLeftContainer: {
     flex: 1,
     paddingLeft: 16,
@@ -206,5 +223,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#000672',
-  }
+    textAlign: 'right'
+  },
 })
