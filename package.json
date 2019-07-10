@@ -3,19 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "devDependencies": {
-    "babel-preset-react-native": "^4.0.1",
     "babel-preset-react-native-stage-0": "^1.0.1",
     "jest": "^23.5.0",
     "jest-react-native": "^18.0.0",
-    "react-test-renderer": "16.3.1",
-    "rn-nodeify": "github:tradle/rn-nodeify"
+    "metro-react-native-babel-preset": "0.54.1",
+    "react-test-renderer": "16.3.1"
   },
   "scripts": {
     "start": "react-native start",
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "test": "jest",
-    "postinstall": "./node_modules/.bin/rn-nodeify --install --hack"
+    "postinstall": "rn-nodeify --install --hack"
   },
   "jest": {
     "preset": "react-native"
@@ -44,8 +43,8 @@
     "process": "^0.11.10",
     "punycode": "^1.4.1",
     "querystring-es3": "^0.2.1",
-    "react": "16.3.1",
-    "react-native": "0.55.4",
+    "react": "16.8.3",
+    "react-native": "0.59.9",
     "react-native-camera": "^1.2.0",
     "react-native-crypto": "^2.1.2",
     "react-native-device-info": "^0.26.4",
@@ -60,6 +59,7 @@
     "react-native-tcp": "^3.3.0",
     "react-native-vector-icons": "^5.0.0",
     "react-navigation": "^2.11.2",
+    "rn-nodeify": "github:tradle/rn-nodeify",
     "readable-stream": "^1.0.33",
     "stream-browserify": "^1.0.0",
     "string_decoder": "^0.10.31",

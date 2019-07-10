@@ -58,7 +58,7 @@ export default class App extends React.Component {
     }
 
     global.port = 7403;
-    global.ip = "13.57.248.201";
+    global.ip = "52.53.141.12";
     global.ecl = new ElectrumCli(global.port, global.ip, 'tcp');
     global.version = DeviceInfo.getVersion();
     global.build = DeviceInfo.getBuildNumber();
